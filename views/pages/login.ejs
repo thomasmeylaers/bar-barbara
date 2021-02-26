@@ -8,24 +8,31 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
-    <title>Hello, world!</title>
+    <title>Bar Barbara | LOGIN</title>
   </head>
   <body>
-    <h1>Login</h1>
-    <% if (messages.error) { %>
-      <%= messages.error %>
-    <% } %>
-    <form action="/login" method="POST">
-      <div>
-        <label for="username">username</label>
-        <input type="text" id="username" name="username" required>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <h1>Login</h1>
+          <% if (messages.error) { %>
+            <%= messages.error %>
+          <% } %>
+          <form action="/login" method="POST">
+            <div>
+              <label for="username">username</label>
+              <input type="text" id="username" name="username" required>
+            </div>
+            <div>
+              <label for="password">Password</label>
+              <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Login</button>
+          </form>
+        </div>
       </div>
-      <div>
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" required>
-      </div>
-      <button type="submit">Login</button>
-    </form>
+    </div>
+
 
 
     <!-- Optional JavaScript -->

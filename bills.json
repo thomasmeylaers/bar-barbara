@@ -1,1 +1,31 @@
-[{"username":"q","email":"q","password":"$2b$10$h71315Bl0lKY1mb5Rey04eX2LejuB/tWsFybvsY5DXeEycMaOQgU6","bill":["rum","test","test"],"card":4,"id":"1614004449199"},{"username":"loran","email":"tieten","password":"$2b$10$tbGXh3JIYaSv92KewJmaD.tDJweQBTfRB/dpTTm8CVpseZubjdiVW","bill":["copacabana","cuba libre"],"card":2,"id":"1614008424224"},{"username":"cédric","email":"","password":"$2b$10$zBaaEmvngRmbZXB6qC.DaeBSPdjq9xiQotUHfBeX4VkzWaDupKsFu","bill":[],"card":0,"id":"1614035247007"}]
+[
+    {
+        "username": "q",
+        "email": "q",
+        "password": "$2b$10$h71315Bl0lKY1mb5Rey04eX2LejuB/tWsFybvsY5DXeEycMaOQgU6",
+        "bill": [
+            "rum",
+            "test",
+            "test",
+            "test"
+        ],
+        "card": 5,
+        "id": "1614004449199"
+    },
+    {
+        "username": "hoer",
+        "email": "hoer@gmail.com",
+        "password": "$2b$10$fmYEgQXNT2PFtAaG4JqBjutQc47qkD/QyRRYwlBWH4y2iZsJAb9em",
+        "bill": [],
+        "card": 0,
+        "id": "1614375072895"
+    },
+    {
+        "username": "cunt",
+        "email": "cunt@gmail.com",
+        "password": "$2b$10$iDjfRuMX3o32GA/ezYqnVurOa5mEzQPSCMBoFjHnGtAOWBK1lspY6",
+        "bill": [],
+        "card": 0,
+        "id": "1614375102023"
+    }
+]

@@ -20,13 +20,14 @@ $(function () {
     var $nameRemoveRecipe = $('#name-remove-recipe');
     var $removeRecipe = $('#remove-recipe');
     var $ordersList = $('#orders-list');
+    var $tbody = $('#tbody');
     var availableIngredients = [];
     var pendingOrders = [];
     var savedIngredients = [];
 
     $.ajax({
         type: 'GET',
-        url: 'http://localhost:3000/ingredients',
+        url: window.location.origin+'/ingredients',
         success: (data) => {
             var data = JSON.parse(data);
             data.forEach(ingredient => {
@@ -37,7 +38,7 @@ $(function () {
 
     $.ajax({
         type: 'GET',
-        url: 'http://localhost:3000/orders',
+        url: window.location.origin+'/orders',
         success: (data) => {
             var dataParsed = JSON.parse(data);
             dataParsed.forEach(order => {
@@ -50,11 +51,39 @@ $(function () {
         }
     });
 
+    $.ajax({
+        type: 'GET',
+        url: window.location.origin+'/getclients',
+        success: (data) => {
+            var bills = JSON.parse(data);
+            bills.forEach(client => {
+                var ordersString = "";
+                client.bill.forEach(drink => {
+                    ordersString = ordersString.concat(drink);
+                    ordersString = ordersString.concat(", ");
+                });
+                $tbody.append('<tr><td>'+client.username+'</td><td>'+ordersString+'</td><td><button class="betalen" client-id="'+client.id+'">BETALEN</button></td></tr>')
+            });
+        }
+    });
+
+    $tbody.on("click", ".betalen", function(event) {
+        var id = $(this).attr('client-id');
+        $.ajax({
+            type:'GET',
+            url: window.location.origin+'/payed/' + id,
+            success:(data)=>{
+                console.log(data);
+                location.reload();
+            }
+        });
+    });
+
     $ordersList.on("click", ".finish-order", function (event) {
         var id = $(this).attr('order-id');
         $.ajax({
             type: 'GET',
-            url:  'http://localhost:3000/finishorder/' + id,
+            url:  window.location.origin+'/finishorder/' + id,
             success: (data) => {
                 location.reload();
             }
@@ -65,7 +94,7 @@ $(function () {
         var id = $(this).attr('order-id');
         $.ajax({
             type: 'GET',
-            url:  'http://localhost:3000/deleteorder/' + id,
+            url:  window.location.origin+'/deleteorder/' + id,
             success: (data) => {
                 location.reload();
             }
@@ -81,12 +110,13 @@ $(function () {
             month: month,
             registered: []
         }
-        $.ajax("http://localhost:3000/addday", {
+        $.ajax(window.location.origin+"/addday", {
             data: JSON.stringify(sendData),
             method: "POST",
             contentType: "application/json",
             success: (response) => {
                 console.log(response);
+                location.reload();
             }
         });
     });
@@ -94,10 +124,11 @@ $(function () {
     $removeDate.on("click", function () {
         var day = $removeDay.val();
         var month = $removeMonth.val();
-        $.ajax("http://localhost:3000/removeday/" + day + "/" + month, {
+        $.ajax(window.location.origin+"/removeday/" + day + "/" + month, {
             method: "GET",
             success: (response) => {
                 console.log(response);
+                location.reload();
             }
         });
     });
@@ -107,7 +138,7 @@ $(function () {
             name: $nameIngredient.val(),
             price: $priceIngredient.val() / $amountIngredient.val()
         };
-        $.ajax("http://localhost:3000/addingredient", {
+        $.ajax(window.location.origin+"/addingredient", {
             data: JSON.stringify(sendData),
             method: "POST",
             contentType: "application/json",
@@ -118,7 +149,7 @@ $(function () {
     });
 
     $removeIngredient.on("click", function () {
-        $.ajax("http://localhost:3000/deleteingredient/" + $removeName.val(), {
+        $.ajax(window.location.origin+"/deleteingredient/" + $removeName.val(), {
             method: "GET",
             succes: (response) => {
                 console.log(response);
@@ -150,7 +181,7 @@ $(function () {
             ingredients: savedIngredients
         };
 
-        $.ajax("http://localhost:3000/addrecipe", {
+        $.ajax(window.location.origin+"/addrecipe", {
             data: JSON.stringify(sendingData),
             method: "POST",
             contentType: "application/json",
@@ -162,7 +193,7 @@ $(function () {
 
     $removeRecipe.on("click", function () {
         var name = $nameRemoveRecipe.val();
-        $.ajax("http://localhost:3000/removerecipe/" + name, {
+        $.ajax(window.location.origin+"/removerecipe/" + name, {
             method: "GET",
             succes: (response) => {
                 console.log(response);

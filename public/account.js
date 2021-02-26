@@ -4,7 +4,7 @@ $(function (){
 
     $.ajax({
         type: 'GET',
-        url:'http://localhost:3000/getClient',
+        url: window.location.origin+'/getClient',
         success:(data)=>{
             var user = JSON.parse(data);
             console.log(typeof user);

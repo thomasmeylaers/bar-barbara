@@ -5,7 +5,7 @@ $(function (){
 
     $.ajax({
         type:'GET',
-        url:'http://localhost:3000/ingredients',
+        url:window.location.origin+'ingredients',
         success:(data)=>{
             ingredientsArray = JSON.parse(data);
         }
@@ -13,7 +13,7 @@ $(function (){
 
     $.ajax({
         type: 'GET',
-        url:'http://localhost:3000/recipes',
+        url:window.location.origin+'recipes',
         success:(data)=>{
           var recipes = JSON.parse(data);
           $.each(recipes, function(i,recipe) {
@@ -40,13 +40,13 @@ $(function (){
             cocktail:$(this).attr('name'),
             time: now.toJSON()
         };
-        $.ajax("http://localhost:3000/order",{
+        $.ajax(window.location.origin+"/order",{
             method:"POST",
             data: JSON.stringify(sendData),
             contentType: "application/json",
             success: (response, textStatus, xhr) =>{ 
                 if (response == 'unauthorized'){
-                    window.location.href = "http://localhost:3000/login";
+                    window.location.href = window.location.origin+"/login";
                 }
             }
         }); 

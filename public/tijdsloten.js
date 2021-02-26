@@ -54,7 +54,11 @@ $(function (){
             contentType: "application/json",
             success: (response, textStatus, xhr) =>{ 
                 if (response == 'unauthorized'){
-                    window.location.href = "http://localhost:3000/login";
+                    window.location.href = window.location.origin+'/login';
+                } else if (response == "corona"){ 
+                    alert("sorry, corona :(");
+                } else{
+                    location.reload()
                 }
             }
         });
@@ -71,14 +75,17 @@ $(function (){
             contentType: "application/json",
             success: (response, textStatus, xhr) =>{ 
                 if (response == 'unauthorized'){
-                    window.location.href = "http://localhost:3000/login";
+                    window.location.href = window.location.origin+'/login';
+                } 
+                else {
+                    location.reload();
                 }
             }
         });
     });
 
     // $add.on("click", ()=>{
-    //     $.ajax("http://localhost:3000/addday", {
+    //     $.ajax(window.location.origin+'/addday", {
     //         data: JSON.stringify(sendData),
     //         method: "POST",
     //         contentType: "application/json",
@@ -88,13 +95,13 @@ $(function (){
     //     });
     // });
     // $reserveren.on("click", ()=>{
-    //     $.ajax("http://localhost:3000/registerday", {
+    //     $.ajax(window.location.origin+'/registerday", {
     //         data: JSON.stringify(sendDataRegister),
     //         method: "POST",
     //         contentType: "application/json",
     //         success: (response, textStatus, xhr) =>{ 
     //             if (response == 'unauthorized'){
-    //                 window.location.href = "http://localhost:3000/login";
+    //                 window.location.href = window.location.origin+'/login";
     //             }
     //         }
     //     });
