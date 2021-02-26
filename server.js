@@ -1,7 +1,3 @@
-if (process.env.NODE_ENV !== 'production') {
-    require('dotenv').config()
-}
-
 var express = require('express');
 var fs = require('fs');
 var bodyParser= require('body-parser');
@@ -12,7 +8,7 @@ const cors = require('cors');
 const passport = require('passport');
 const flash = require('express-flash');
 const session = require('express-session');
-
+let port = process.env.PORT || 3000;
 
 const initializePassport = require('./passport-config');
 // initializePassport(passport, username =>{
@@ -27,7 +23,6 @@ initializePassport(
 
 var app = express();
 
-var server = app.listen(3000, listening);
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({extended : false}));
@@ -588,3 +583,7 @@ function checkNotAuthenticated(request, response, next){
     }
     next();
 }
+
+app.listen(port, ()=>{
+    console.log("OY CUNT");
+});
