@@ -29,7 +29,7 @@ $(function () {
         type: 'GET',
         url: window.location.origin+'/ingredients',
         success: (data) => {
-            var data = JSON.parse(data);
+            var data = data;
             data.forEach(ingredient => {
                 availableIngredients.push(ingredient.name);
             });
@@ -40,7 +40,7 @@ $(function () {
         type: 'GET',
         url: window.location.origin+'/orders',
         success: (data) => {
-            var dataParsed = JSON.parse(data);
+            var dataParsed = data;
             dataParsed.forEach(order => {
                 pendingOrders.push(order);
             });
@@ -53,9 +53,9 @@ $(function () {
 
     $.ajax({
         type: 'GET',
-        url: window.location.origin+'/getclients',
+        url: window.location.origin+'/clients',
         success: (data) => {
-            var bills = JSON.parse(data);
+            var bills = data;
             bills.forEach(client => {
                 var ordersString = "";
                 client.bill.forEach(drink => {
@@ -187,6 +187,7 @@ $(function () {
             contentType: "application/json",
             succes: (response) => {
                 console.log(response);
+                location.reload();
             }
         });
     });

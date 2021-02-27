@@ -1,1 +1,13 @@
-[]
+[
+    {
+        "name" : "cuba libre",
+        "ingredients": [{
+            "ingredient":"rum",
+            "amount":[1]
+        }, {
+            "ingredient":"cola",
+            "amount":[1,2]
+        }]
+    }
+
+]

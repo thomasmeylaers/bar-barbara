@@ -6,7 +6,7 @@ $(function (){
         type: 'GET',
         url: window.location.origin+'/getClient',
         success:(data)=>{
-            var user = JSON.parse(data);
+            var user = data;
             console.log(typeof user);
             console.log(user);
             $coinsAmount.html('<p>Jij moet nog '+(10-user.card)+' cocktails drinken voor een gratis cocktail!</p>');

@@ -19,7 +19,7 @@ $(function(){
         };
 
         if (isEmail($email.val())){
-            $.ajax(window.location.origin+"/addclient", {
+            $.ajax(window.location.origin+"/clients/add", {
                 data: JSON.stringify(user),
                 method: "POST",
                 contentType: "application/json",

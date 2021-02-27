@@ -15,16 +15,51 @@ let port = process.env.PORT || 3000;
 
 // Require schemas
 const Ingredient = require('./models/ingredients');
+const Recipe = require('./models/recipes');
+const Bills = require('./models/bills');
+const Order = require('./models/order');
+const Tijdsloten = require('./models/tijdsloten');
 
-const initializePassport = require('./passport-config');
-// initializePassport(passport, username =>{
-//     return bills.find(user => user.username === username)
-// });
-initializePassport(
-    passport,
-    username => bills.find(user => user.username === username),
-    id => bills.find(user => user.id === id)
-);
+// const initializePassport = require('./passport-config');
+// initializePassport(
+//     passport,
+//     username => bills.find(user => user.username === username),
+//     id => bills.find(user => user.id === id)
+// );
+
+// initializePassport(
+//     passport,
+//     username => getByUsername(username),
+//     id => getById(id)
+// );
+
+require('./passport')(passport);
+
+function getByUsername(username) {
+    // var ape = {};
+    // Bills.find({username:username}, function(err, data) {
+    //     console.log("ape1:");
+    //     console.log(ape);
+    //     ape = data
+    //     console.log("ape2:");
+    //     console.log(ape);
+    //     return ape;
+    // });
+    // console.log("ape3");
+    // console.log(ape);
+}
+
+function getById(id) {
+    var num;
+    Bills.findOne({ id: id }, function (err, data) {
+        if (err) {
+            return 0;
+        } else {
+            num = data;
+        }
+    });
+    return num;
+}
 
 
 var app = express();
@@ -100,15 +135,14 @@ app.post('/ingredients/add', addIngredient);
 app.get('/ingredients/:name?', getIngredients);
 app.get('/ingredients/remove/:name?', deleteIngredient);
 // Handling cocktail recipes
-app.post('/addRecipe', addRecipe);
+app.post('/recipes/add', addRecipe);
 app.get('/recipes/:name?', getRecipes);
-app.get('/removerecipe/:name?', deleteRecipe);
+app.get('/recipes/remove/:name', deleteRecipe);
 // Handling client database
-app.post('/addclient', addClient);
+app.post('/clients/add', addClient);
 app.get('/getclient', getClient);
-app.get('/getclients', getClients);
-app.get('/deleteclient/:name', deleteClient);
-app.get('/adddrink/:drink/:name', addDrink);
+app.get('/clients', getClients);
+app.get('/clients/remove/:name', deleteClient);
 app.post('/order', orderDrink);
 app.get('/finishorder/:id', finishOrder);
 app.get('/deleteorder/:id', deleteOrder);
@@ -118,7 +152,7 @@ app.post('/login', passport.authenticate('local', {
     successRedirect: '/',
     failureRedirect: '/login',
     failureFlash: true
-}))
+}));
 app.get('/logout', (request, response) => {
     request.logout();
     response.redirect('/');
@@ -136,16 +170,16 @@ app.post('/unregisterday', checkAuthenticated, unregisterDay);
 
 function addIngredient(req, res) {
     const newIngredient = new Ingredient({
-        name:req.body.name,
-        price:req.body.price
+        name: req.body.name,
+        price: req.body.price
     })
-    Ingredient.findOne({name:req.body.name}, function(err, doc) {
-        if (doc != null){
-            res.json({message:"This Ingredient already exists"})
+    Ingredient.findOne({ name: req.body.name }, function (err, doc) {
+        if (doc != null) {
+            res.json({ message: "This Ingredient already exists" })
         } else {
-            newIngredient.save(function(err, saved){
-                if(err) {
-                    res.json(savedIngredient);
+            newIngredient.save(function (err, saved) {
+                if (err) {
+                    res.json({ message: errr });
                 } else {
                     res.json(saved);
                 }
@@ -157,24 +191,36 @@ function addIngredient(req, res) {
 
 }
 
-async function getIngredients(req, res) {
-    try {
-        const ingredients = await Ingredient.find();
-        res.json(ingredients);
-    } catch (error) {
-        res.json({message:error});
+function getIngredients(req, res) {
+    var name = req.params.name;
+    if (name) {
+        Ingredient.findOne({ name: name }, function (err, data) {
+            if (err) {
+                res.json({ message: err })
+            } else {
+                res.json(data);
+            }
+        });
+    } else {
+        Ingredient.find(function (err, doc) {
+            if (err) {
+                res.json({ message: err })
+            } else {
+                res.json(doc);
+            }
+        });
     }
 }
 
 function deleteIngredient(req, res) {
     var name = req.params.name;
-    Ingredient.findOne({name:name}, function(err,doc){
-        if(!doc) {
-            res.json({message:"There is no such ingredient"})
-        } else{
-            Ingredient.remove({name:name}, function(err, removed) {
-                if(err) {
-                    res.json({message:err});
+    Ingredient.findOne({ name: name }, function (err, doc) {
+        if (!doc) {
+            res.json({ message: "There is no such ingredient" })
+        } else {
+            Ingredient.remove({ name: name }, function (err, removed) {
+                if (err) {
+                    res.json({ message: err });
                 } else {
                     res.json(removed);
                 }
@@ -185,144 +231,142 @@ function deleteIngredient(req, res) {
 
 //===========================================================================================\\
 
-function getRecipes(request, response) {
-    var data = request.params;
-    var recipe = data.name;
-    if (recipe == undefined) {
-        response.send(JSON.stringify(recipes));
-
-    } else {
-        recipes.forEach(cocktail => {
-            if (cocktail.name == recipe) {
-                response.send(JSON.stringify(cocktail));
+function getRecipes(req, res) {
+    var name = req.params.name;
+    if (name) {
+        Recipe.findOne({ name: name }, function (err, data) {
+            if (err) {
+                res.json({ message: err })
+            } else {
+                res.json(data)
             }
         });
-
+    } else {
+        Recipe.find(function (err, doc) {
+            if (err) {
+                res.json({ message: err })
+            } else {
+                res.json(doc);
+            }
+        });
     }
 }
 
 
-function addRecipe(request, response) {
-    var recipe = request.body;
-    var contains = false;
-    recipes.forEach(cocktail => {
-        if (cocktail.name == recipe.name) {
-            contains = true;
+function addRecipe(req, res) {
+    const newRecipe = new Recipe(req.body);
+    Recipe.findOne({ name: req.body.name }, function (err, data) {
+        if (data) {
+            res.json({ message: "recipe already exists" })
+        } else {
+            newRecipe.save(function (err, saved) {
+                if (err) {
+                    res.json({ message: err });
+                } else {
+                    res.json(saved);
+                }
+            });
         }
     });
-    if (contains) {
-        response.send("recipe already exists");
-    } else {
-        recipes.push(recipe);
-
-        var parsingData = JSON.stringify(recipes);
-
-        fs.writeFile('recipes.json', parsingData, finished);
-        function finished() {
-            console.log("added " + recipe);
-        }
-        response.send(recipes);
-    }
-
 }
 
-function deleteRecipe(request, response) {
-    var data = request.params;
-    var name = data.name;
-
-    if (name == undefined) {
-        var keys = Object.keys(recipes);
-
-        if (keys.length < 1) {
-            response.send('there are no recipes');
+function deleteRecipe(req, res) {
+    var name = req.params.name;
+    Recipe.findOne({ name: name }, function (err, doc) {
+        if (!doc) {
+            res.json({ message: "There is no such recipe" })
         } else {
-            var deleteName = keys.slice(-1)[0];
-            delete recipes[deleteName];
-
-            var parsingData = JSON.stringify(recipes);
-
-            fs.writeFile('recipes.json', parsingData, finished);
-
-            function finished(err) {
-                console.log('recipe deleted');
-                response.send('removed ' + deleteName);
-            }
-        }
-    }
-    else {
-        recipes.forEach(recipe => {
-            if (recipe.name == name) {
-                const index = recipes.indexOf(recipe);
-                if (index > -1) {
-                    recipes.splice(index, 1);
+            Recipe.remove({ name: name }, function (err, removed) {
+                if (err) {
+                    res.json({ message: err });
+                } else {
+                    res.json(removed);
                 }
-            }
-        });
-        var parsingData = JSON.stringify(recipes);
-        fs.writeFile('recipes.json', parsingData, finished);
-        function finished() {
-            console.log('recipe removed');
-            response.send('removed ' + name);
+            });
         }
-    }
+    });
 }
 
-function orderDrink(request, response) {
-    var data = request.body;
-    if (request.isAuthenticated()) {
-        var name = request.user.username;
+function orderDrink(req, res) {
+    var data = req.body;
+    if (req.isAuthenticated()) {
+        var name = req.user.username;
         var time = data.time;
         var cocktail = data.cocktail;
         var sendingData = {
             name: name,
             cocktail: cocktail,
             time: data.time,
-            finished: false,
-            id: Date.now().toString()
+            finished: false
         };
-        orders.push(sendingData);
-        var parsingData = JSON.stringify(orders);
-        fs.writeFile('orders.json', parsingData, finished);
-        function finished() {
-            console.log(sendingData);
-        }
-        bills.forEach(user => {
-            if (user.username == name) {
-                if (user.card == 9) {
-                    user.card = 0;
-                } else {
-                    user.bill.push(cocktail);
-                    user.card++;
-                }
-
+        var newOrder = new Order(sendingData);
+        newOrder.save(function (err, saved) {
+            if (err) {
+                console.log('err');
+            } else {
+                console.log('saved');
             }
-        });
-        var parsingData = JSON.stringify(bills);
-        fs.writeFile('bills.json', parsingData, finished);
-        function finished() {
-            console.log(sendingData);
-        }
+        })
 
-        response.send("Done");
+        // bills.forEach(user => {
+        //     if (user.username == name) {
+        //         if (user.card == 9) {
+        //             user.card = 0;
+        //         } else {
+        //             user.bill.push(cocktail);
+        //             user.card++;
+        //         }
+
+        //     }
+        // });
+        Bills.findOne({ username: name }, function (err, data) {
+            if (err) {
+                res.json({ message: err })
+            } else {
+                var card = data.card;
+                if (card == 10) {
+                    Bills.updateOne({ username: name }, { $set: { card: 0 } }, function (err, data) {
+                        if (err) {
+                            res.json({ message: err })
+                        } else {
+                            res.json(data);
+                        }
+                    })
+                } else {
+                    console.log("im here");
+                    Bills.updateOne({ username: name }, { $push: { bill: cocktail } }, function (err, data) {
+                        if (err) {
+                            res.json({ message: err })
+                        } else {
+
+                            var newCard = card + 1;
+                            Bills.updateOne({ username: name }, { $set: {card:newCard} }, function(err,data){
+                                if (err) {
+                                    res.json({ message: err })
+                                } else {
+                                    res.json(data);
+                                }
+                            })
+                        }
+                    })
+                }
+            }
+        })
     } else {
-        response.send("unauthorized");
+        res.send("unauthorized");
     }
 }
 
-function finishOrder(request, response) {
-    var data = request.params;
+function finishOrder(req, res) {
+    var data = req.params;
     var id = data.id;
-    orders.forEach(order => {
-        if (order.id == id) {
-            order.finished = true;
+    Order.updateOne({ _id: id }, { $set: { finished: true } }, function (err, data) {
+        if (err) {
+            res.json({ message: err });
+        } else {
+            res.json(data);
         }
-    });
-    var parsingData = JSON.stringify(orders);
-    fs.writeFile('orders.json', parsingData, finished);
-    function finished() {
-        console.log(id);
-    }
-    response.send(id);
+    })
 }
 
 function deleteOrder(request, response) {
@@ -360,38 +404,56 @@ function deleteOrder(request, response) {
 
 }
 
-function getOrders(request, response) {
-    var sendingOrders = [];
-    orders.forEach(order => {
-        if (!order.finished) {
-            sendingOrders.push(order);
+function getOrders(req, res) {
+    Order.find(function (err, data) {
+        if (err) {
+            res.json({ message: err })
+        } else {
+            res.json(data);
         }
-    });
-    response.send(JSON.stringify(sendingOrders));
+    })
 }
 
 //===========================================================================================\\
 
-async function addClient(request, response) {
-    var user = request.body;
+async function addClient(req, res) {
+    var user = req.body;
     try {
         var hashedPassword = await bcrypt.hash(user.password, 10);
         user.password = hashedPassword;
         user.id = Date.now().toString();
-        bills.push(user);
-        var parsingData = JSON.stringify(bills);
-        fs.writeFile('bills.json', parsingData, finished);
-        var payedData = {
-            username: user.username,
-            payed: []
-        };
-        var parsingData = JSON.stringify(payedData);
-        fs.writeFile("payed-bills.json", parsingData, finished);
-        function finished() {
-            // console.log("added "+ user);
-            console.log("NEW USER ADDED");
-        }
-        response.send('ok');
+        // bills.push(user);
+        // var parsingData = JSON.stringify(bills);
+        // fs.writeFile('bills.json', parsingData, finished);
+        const newClient = new Bills(user);
+        Bills.findOne({ username: user.username }, function (err, data) {
+            if (err) {
+                res.json({ message: err })
+            } else {
+                if (data != null) {
+                    res.json({ message: "This user already exists" })
+                } else {
+                    newClient.save(function (err, saved) {
+                        if (err) {
+                            res.json({ message: err })
+                        } else {
+                            res.json(saved);
+                        }
+                    });
+                }
+            }
+        });
+        // var payedData = {
+        //     username: user.username,
+        //     payed: []
+        // };
+        // var parsingData = JSON.stringify(payedData);
+        // fs.writeFile("payed-bills.json", parsingData, finished);
+        // function finished() {
+        //     // console.log("added "+ user);
+        //     console.log("NEW USER ADDED");
+        // }
+        // response.send('ok');
 
     } catch {
         console.log("error");
@@ -401,28 +463,23 @@ async function addClient(request, response) {
 function deleteClient(request, response) {
     var data = request.params;
     var name = data.name;
-
-    delete bills[name];
-    var parsingData = JSON.stringify(bills);
-    fs.writeFile('bills.json', parsingData, finished);
-    function finished() {
-        console.log(name + ' was deleted');
-        response.send(name + ' removed from the client base');
-    }
-}
-
-function addDrink(request, response) {
-    var data = request.params;
-    var drink = data.drink;
-    var name = data.name;
-
-    bills[name]['drinks'].push(drink);
-    var parsingData = JSON.stringify(bills);
-    fs.writeFile('bills.json', parsingData, finished);
-    function finished() {
-        console.log(drink + ' added to ' + name);
-        response.send(drink + ' added to ' + name);
-    }
+    Ingredient.findOne({ username: name }, function (err, data) {
+        if (err) {
+            res.json({ message: err })
+        } else {
+            if (!data) {
+                res.json({ message: "no user found" })
+            } else {
+                Bills.remove({ username: name }, function (err, removed) {
+                    if (err) {
+                        res.json({ message: err })
+                    } else {
+                        res.json(removed);
+                    }
+                })
+            }
+        }
+    })
 }
 
 function payed(request, response) {
@@ -430,11 +487,11 @@ function payed(request, response) {
     var id = data.id;
 
     bills.forEach(client => {
-        if (client.id == id){
+        if (client.id == id) {
             var payedArray = client.bill;
             client.bill = [];
             payedBills.forEach(element => {
-                if(element.username == client.username) {
+                if (element.username == client.username) {
                     element.payed = payedArray;
                 }
             });
@@ -451,124 +508,182 @@ function payed(request, response) {
     response.send(id);
 }
 
-function getClient(request, response) {
-    var username = request.user.username;
-    var user = bills.find(user => user.username === username);
-    var parsingData = JSON.stringify(user);
-    console.log(parsingData);
-    response.send(parsingData);
+function getClient(req, res) {
+    var username = req.user.username;
+    Bills.findOne({ username: username }, function (err, data) {
+        if (err) {
+            res.json({ message: err });
+        } else {
+            res.json(data);
+        }
+    });
 }
 
-function getClients(request, response) {
-    var parsingData = JSON.stringify(bills);
-    response.send(parsingData);
+function getClients(req, res) {
+    Bills.find(function (err, data) {
+        if (err) {
+            res.json({ message: err })
+        } else {
+            res.json(data)
+        }
+    })
 }
 
 //========================================================================================\\
-function addDay(request, response) {
-    var data = request.body;
-    tijdsloten.push(data);
-    var parsingData = JSON.stringify(tijdsloten);
-    fs.writeFile('tijdsloten.json', parsingData, finished);
-    function finished() {
-        response.send(parsingData);
-    }
+function addDay(req, res) {
+    var data = req.body;
+    var newTijdslot = new Tijdsloten(data);
+    newTijdslot.save(function(err,saved) {
+        if(err) {
+            res.json({message:err})
+        } else{
+            res.json(saved);
+        }
+    })
 }
 
-function removeDay(request, response) {
-    var data = request.params;
+function removeDay(req, res) {
+    var data = req.params;
     var day = data.day;
     var month = data.month;
-    tijdsloten.forEach(slot => {
-        if (slot.day == day && slot.month == month) {
-            const index = tijdsloten.indexOf(slot);
-            if (index > -1) {
-                tijdsloten.splice(index, 1);
-            }
+
+    Tijdsloten.remove({day:day,month:month}, function(err,data){
+        if(err){
+            res.json({message:err})
+        } else{
+            res.json(data)
         }
-    });
-    var parsingData = JSON.stringify(tijdsloten);
-    fs.writeFile('tijdsloten.json', parsingData, finished);
-    function finished() {
-        console.log(parsingData);
-    }
-    response.send("day was deleted");
+    })
 }
 
-function registerDay(request, response) {
-    if (request.isAuthenticated()) {
-        var data = request.body;
+function registerDay(req, res) {
+    if (req.isAuthenticated()) {
+        var data = req.body;
         var givenDay = data.day;
         var givenMonth = data.month;
-        var name = request.user.username;
+        var name = req.user.username;
         var corona = false;
-        tijdsloten.forEach(tijdslot => {
-            var tijdslotDay = tijdslot.day;
-            var tijdslotMonth = tijdslot.month;
-            if (givenDay == tijdslotDay && givenMonth == tijdslotMonth) {
-                if (!tijdslot.registered.includes(name)) {
-                    if(tijdslot.registered.length == 3){
-                        corona = true;
-                    } else {
-                        tijdslot.registered.push(name);
+        // tijdsloten.forEach(tijdslot => {
+        //     var tijdslotDay = tijdslot.day;
+        //     var tijdslotMonth = tijdslot.month;
+        //     if (givenDay == tijdslotDay && givenMonth == tijdslotMonth) {
+        //         if (!tijdslot.registered.includes(name)) {
+        //             if (tijdslot.registered.length == 3) {
+        //                 corona = true;
+        //             } else {
+        //                 tijdslot.registered.push(name);
+        //             }
+        //         }
+        //     }
+        // });
+
+        Tijdsloten.find(function(err,data){
+            if(err){
+                res.json({message:err})
+            } else {
+                data.forEach(tijdslot => {
+                    if(givenDay == tijdslot.day && givenMonth == tijdslot.month) {
+                        if(tijdslot.registered.length >= 3) {
+                            corona = true;
+                            res.send("corona")
+                        } else {
+                            Tijdsloten.updateOne({_id:tijdslot._id}, {$push:{registered:name}}, function(err, data) {
+                                if (err) {
+                                    res.json({message:err});
+                                } else {
+                                    res.json(data)
+                                }
+                            });
+                        }
                     }
-                }
-            }
-        });
 
-        var parsingData = JSON.stringify(tijdsloten);
-        fs.writeFile('tijdsloten.json', parsingData, finished);
-        function finished() {
-            console.log(parsingData);
-        }
-        if (corona) {
-            response.send("corona");
-        } else {
-            response.send(parsingData)
-        }
+                });
+            }
+        })
+
+        // var parsingData = JSON.stringify(tijdsloten);
+        // fs.writeFile('tijdsloten.json', parsingData, finished);
+        // function finished() {
+        //     console.log(parsingData);
+        // }
+        // if (corona) {
+        //     response.send("corona");
+        // } else {
+        //     response.send(parsingData)
+        // }
     } else {
-        response.send('unauthorized');
+        res.send('unauthorized');
     }
 }
 
-function getTimeslots(request, response) {
-    if (request.isAuthenticated()) {
-        var sendingData = [];
-        var name = request.user.username;
-        tijdsloten.forEach(slot => {
-            var sendingSlot = Object.assign({}, slot);;
-            if (sendingSlot.registered.includes(name)) {
-                sendingSlot.occupied = true;
+function getTimeslots(req, res) {
+    if (req.isAuthenticated()) {
+        // var sendingData = [];
+        // var name = req.user.username;
+        // tijdsloten.forEach(slot => {
+        //     var sendingSlot = Object.assign({}, slot);;
+        //     if (sendingSlot.registered.includes(name)) {
+        //         sendingSlot.occupied = true;
+        //     }
+        //     sendingData.push(sendingSlot);
+        // });
+        // res.send(JSON.stringify(sendingData));
+        Tijdsloten.find(function (err,data) {
+            if (err) {
+                res.json({message:err})
+            } else {
+                var name = req.user.username;
+                var sendingData = []
+                data.forEach(tijdslot => {
+                    if(tijdslot.registered.includes(name)){
+                        tijdslot.occupied = true;
+                        console.log(tijdslot);
+                    }
+                    sendingData.push(tijdslot);
+                });
+                console.log(sendingData);
+                res.json(sendingData);
             }
-            sendingData.push(sendingSlot);
-        });
-        response.send(JSON.stringify(sendingData));
+        })
     } else {
-        response.send(JSON.stringify(tijdsloten));
+        Tijdsloten.find(function (err, data) {
+            if(err) {
+                res.json({message:err})
+            } else{
+                res.json(data);
+            }
+        })
     }
 }
 
-function unregisterDay(request, response) {
-    var name = request.user.username;
-    var data = request.body;
+function unregisterDay(req, res) {
+    var name = req.user.username;
+    var data = req.body;
     var day = data.day;
     var month = data.month;
-    tijdsloten.forEach(slot => {
-        if (slot.day == day && slot.month == month) {
-            if (slot.registered.includes(name)) {
-                const index = slot.registered.indexOf(name);
-                if (index > -1) {
-                    slot.registered.splice(index, 1);
-                }
-            }
-        }
+    // tijdsloten.forEach(slot => {
+    //     if (slot.day == day && slot.month == month) {
+    //         if (slot.registered.includes(name)) {
+    //             const index = slot.registered.indexOf(name);
+    //             if (index > -1) {
+    //                 slot.registered.splice(index, 1);
+    //             }
+    //         }
+    //     }
 
-    });
-    var parsingData = JSON.stringify(tijdsloten);
-    fs.writeFile('tijdsloten.json', parsingData, finished);
-    function finished() {
-        response.send(parsingData);
-    }
+    // });
+    // var parsingData = JSON.stringify(tijdsloten);
+    // fs.writeFile('tijdsloten.json', parsingData, finished);
+    // function finished() {
+    //     response.send(parsingData);
+    // }
+    Tijdsloten.updateOne({day:day,month:month}, {$pull:{registered:name}}, function(err, data){
+        if (err){
+            res.json({message:err})
+        } else{
+            res.json(data);
+        }
+    })
 }
 
 

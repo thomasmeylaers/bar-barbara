@@ -5,17 +5,17 @@ $(function (){
 
     $.ajax({
         type:'GET',
-        url:window.location.origin+'ingredients',
+        url:window.location.origin+'/ingredients',
         success:(data)=>{
-            ingredientsArray = JSON.parse(data);
+            ingredientsArray = data;
         }
     });
 
     $.ajax({
         type: 'GET',
-        url:window.location.origin+'recipes',
+        url:window.location.origin+'/recipes',
         success:(data)=>{
-          var recipes = JSON.parse(data);
+          var recipes = data;
           $.each(recipes, function(i,recipe) {
                 var ingredientsString = "";
                 var price = 0;

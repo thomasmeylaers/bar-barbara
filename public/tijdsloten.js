@@ -20,7 +20,7 @@ $(function (){
         method:"GET",
         success: function(response){
             var tijdsloten = response;
-            var data = JSON.parse(tijdsloten)
+            var data = (tijdsloten)
             console.log(data);
             $.each(data,function(i,date){
                 var day = date.day;
@@ -31,7 +31,7 @@ $(function (){
                     registeredString = registeredString.concat(name);
                     registeredString = registeredString.concat(', ');
                 });
-                if (!('occupied' in date)){
+                if (!date.occupied){
                     $tbody.append('<tr><td>'+day+'/'+month+'</td><td>'+registeredString+'</td><td><button class="inschrijven-datum" day="'+day+'" month="'+month+'">inschrijven</button></td></tr>')
                 }else{
                     console.log("HERE");
