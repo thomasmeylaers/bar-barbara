@@ -138,18 +138,18 @@ $(function () {
             name: $nameIngredient.val(),
             price: $priceIngredient.val() / $amountIngredient.val()
         };
-        $.ajax(window.location.origin+"/addingredient", {
+        $.ajax(window.location.origin+"/ingredients/add", {
             data: JSON.stringify(sendData),
             method: "POST",
             contentType: "application/json",
             succes: (response) => {
-                console.log(response);
+                location.reload();
             }
         });
     });
 
     $removeIngredient.on("click", function () {
-        $.ajax(window.location.origin+"/deleteingredient/" + $removeName.val(), {
+        $.ajax(window.location.origin+"/ingredients/remove/" + $removeName.val(), {
             method: "GET",
             succes: (response) => {
                 console.log(response);

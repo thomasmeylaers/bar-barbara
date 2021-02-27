@@ -218,11 +218,11 @@ function deleteIngredient(req, res) {
         if (!doc) {
             res.json({ message: "There is no such ingredient" })
         } else {
-            Ingredient.remove({ name: name }, function (err, removed) {
+            Ingredient.deleteOne({ name: name }, function (err, removed) {
                 if (err) {
                     res.json({ message: err });
                 } else {
-                    res.json(removed);
+                    res.json('removed');
                 }
             });
         }
