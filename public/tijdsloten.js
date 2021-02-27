@@ -16,9 +16,35 @@ $(function (){
         month:month
     }
 
+    function compare( a, b ) {
+        if ( a.month < b.month ){
+          return -1;
+        }
+        if ( a.month > b.month ){
+          return 1;
+        }
+        return 0;
+      }
+    function compare2(a,b){
+        if(1==1) {
+            if (a.day>b.day){
+                return 1;
+            }
+            if (a.day <b.day) {
+                return -1;
+            }
+        }
+        return 0;
+    }
+
+
     $.ajax(window.location.origin+ "/timeslots",{
         method:"GET",
         success: function(response){
+            response.sort(compare);
+            // response.sort(compare2)
+            // response.sort(compare2)
+
             var tijdsloten = response;
             var data = (tijdsloten)
             console.log(data);
