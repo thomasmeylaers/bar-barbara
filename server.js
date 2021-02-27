@@ -7,10 +7,14 @@ const { finished } = require('stream');
 const cors = require('cors');
 const passport = require('passport');
 const path = require('path');
+const mongoose = require('mongoose');
 const flash = require('express-flash');
 const session = require('express-session');
 const favicon = require('serve-favicon');
 let port = process.env.PORT || 3000;
+
+// Require schemas
+const Ingredient = require('./models/ingredients');
 
 const initializePassport = require('./passport-config');
 // initializePassport(passport, username =>{
@@ -25,6 +29,9 @@ initializePassport(
 
 var app = express();
 
+mongoose.connect('mongodb+srv://thomas:dbPassw123@bar-cluster.nd5tg.mongodb.net/bar-barbara?retryWrites=true&w=majority', { useNewUrlParser: true }, () => {
+    console.log('connected to db');
+})
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -53,10 +60,6 @@ var ordersData = fs.readFileSync("orders.json");
 var orders = JSON.parse(ordersData);
 var payedBillsData = fs.readFileSync("payed-bills.json");
 var payedBills = JSON.parse(payedBillsData);
-
-function listening() {
-    console.log('listening on port 3000...');
-}
 
 app.use(express.static('public'));
 // server.use(serveStatic(__dirname + "/client/dist"));
@@ -93,9 +96,9 @@ app.get('/admin', (request, response) => {
 });
 
 // Handling ingredients/storage
-app.post('/addIngredient', addIngredient);
+app.post('/ingredients/add', addIngredient);
 app.get('/ingredients/:name?', getIngredients);
-app.get('/deleteIngredient/:name?', deleteIngredient);
+app.get('/ingredients/remove/:name?', deleteIngredient);
 // Handling cocktail recipes
 app.post('/addRecipe', addRecipe);
 app.get('/recipes/:name?', getRecipes);
@@ -131,83 +134,53 @@ app.get('/timeslots', getTimeslots);
 app.post('/unregisterday', checkAuthenticated, unregisterDay);
 //===========================================================================================\\
 
-function addIngredient(request, response) {
-    var data = request.body;
-    var name = data.name;
-    var price = Number(data.price);
-    var occupied = false;
-    ingredients.forEach(ingredient => {
-        if (ingredient.name == name) {
-            occupied = true;
+function addIngredient(req, res) {
+    const newIngredient = new Ingredient({
+        name:req.body.name,
+        price:req.body.price
+    })
+    Ingredient.findOne({name:req.body.name}, function(err, doc) {
+        if (doc != null){
+            res.json({message:"This Ingredient already exists"})
+        } else {
+            newIngredient.save(function(err, saved){
+                if(err) {
+                    res.json(savedIngredient);
+                } else {
+                    res.json(saved);
+                }
+            });
+
         }
     });
-    if (!occupied) {
-        var newIngredient = { name: name, price: price };
-        ingredients.push(newIngredient);
-        var parsingData = JSON.stringify(ingredients);
-
-        fs.writeFile('ingredients.json', parsingData, finished);
-
-        function finished(err) {
-            console.log('ingredient added');
-            response.send("added " + name + " " + price);
-        }
-    } else {
-        response.send("was already added");
-    }
 
 
 }
 
-function getIngredients(request, response) {
-    var data = request.params;
-    var ingredient = data.name;
-
-    if (ingredient == undefined) {
-        response.send(JSON.stringify(ingredients));
-
-    } else {
-        ingredients.forEach(obj => {
-            if (obj.name == ingredient) {
-                response.send(JSON.stringify(obj));
-
-            }
-        });
-        response.end();
+async function getIngredients(req, res) {
+    try {
+        const ingredients = await Ingredient.find();
+        res.json(ingredients);
+    } catch (error) {
+        res.json({message:error});
     }
 }
 
-function deleteIngredient(request, response) {
-    var data = request.params;
-    var name = data.name;
-    var length = ingredients.length;
-    if (name == undefined) {
-        if (length < 1) {
-            response.send('there are no ingredients');
-        } else {
-            ingredients.pop();
-            var parsingData = JSON.stringify(ingredients);
-            fs.writeFile('ingredients.json', parsingData, finished);
-            function finished(err) {
-                console.log('ingredient removed');
-                response.send('removed ' + deleteName);
-            }
+function deleteIngredient(req, res) {
+    var name = req.params.name;
+    Ingredient.findOne({name:name}, function(err,doc){
+        if(!doc) {
+            res.json({message:"There is no such ingredient"})
+        } else{
+            Ingredient.remove({name:name}, function(err, removed) {
+                if(err) {
+                    res.json({message:err});
+                } else {
+                    res.json(removed);
+                }
+            });
         }
-    }
-    else {
-        ingredients.forEach(ingredient => {
-            const index = ingredients.indexOf(ingredient);
-            if (index > -1) {
-                ingredients.splice(index, 1);
-            }
-        });
-        var parsingData = JSON.stringify(ingredients);
-        fs.writeFile('ingredients.json', parsingData, finished);
-        function finished() {
-            console.log('ingredient removed');
-            response.send('removed ' + name);
-        }
-    }
+    });
 }
 
 //===========================================================================================\\
