@@ -19,6 +19,7 @@ const Recipe = require('./models/recipes');
 const Bills = require('./models/bills');
 const Order = require('./models/order');
 const Tijdsloten = require('./models/tijdsloten');
+const Payed = require('./models/payed-bills');
 
 // const initializePassport = require('./passport-config');
 // initializePassport(
@@ -83,18 +84,18 @@ app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(passport.initialize());
 app.use(passport.session());
 
-var ingredientsData = fs.readFileSync('ingredients.json');
-var ingredients = JSON.parse(ingredientsData);
-var recipesData = fs.readFileSync('recipes.json');
-var recipes = JSON.parse(recipesData);
-var billsData = fs.readFileSync('bills.json');
-var bills = JSON.parse(billsData);
-var tijdslotenData = fs.readFileSync('tijdsloten.json');
-var tijdsloten = JSON.parse(tijdslotenData);
-var ordersData = fs.readFileSync("orders.json");
-var orders = JSON.parse(ordersData);
-var payedBillsData = fs.readFileSync("payed-bills.json");
-var payedBills = JSON.parse(payedBillsData);
+// var ingredientsData = fs.readFileSync('ingredients.json');
+// var ingredients = JSON.parse(ingredientsData);
+// var recipesData = fs.readFileSync('recipes.json');
+// var recipes = JSON.parse(recipesData);
+// var billsData = fs.readFileSync('bills.json');
+// var bills = JSON.parse(billsData);
+// var tijdslotenData = fs.readFileSync('tijdsloten.json');
+// var tijdsloten = JSON.parse(tijdslotenData);
+// var ordersData = fs.readFileSync("orders.json");
+// var orders = JSON.parse(ordersData);
+// var payedBillsData = fs.readFileSync("payed-bills.json");
+// var payedBills = JSON.parse(payedBillsData);
 
 app.use(express.static('public'));
 // server.use(serveStatic(__dirname + "/client/dist"));
@@ -148,6 +149,7 @@ app.get('/finishorder/:id', finishOrder);
 app.get('/deleteorder/:id', deleteOrder);
 app.get('/orders', getOrders);
 app.get('/payed/:id', payed);
+app.get('/payedbills', getPayed);
 app.post('/login', passport.authenticate('local', {
     successRedirect: '/',
     failureRedirect: '/login',
@@ -181,6 +183,7 @@ function addIngredient(req, res) {
                 if (err) {
                     res.json({ message: errr });
                 } else {
+                    console.log(saved);
                     res.json(saved);
                 }
             });
@@ -340,7 +343,7 @@ function orderDrink(req, res) {
                         } else {
 
                             var newCard = card + 1;
-                            Bills.updateOne({ username: name }, { $set: {card:newCard} }, function(err,data){
+                            Bills.updateOne({ username: name }, { $set: { card: newCard } }, function (err, data) {
                                 if (err) {
                                     res.json({ message: err })
                                 } else {
@@ -482,30 +485,97 @@ function deleteClient(request, response) {
     })
 }
 
-function payed(request, response) {
-    var data = request.params;
+function getPayed(req, res) {
+    Payed.find(function (err, data){
+        if (err) {
+            res.json({message: err})
+        } else {
+            res.json(data);
+        }
+    })
+}
+
+function payed(req, res) {
+    var data = req.params;
     var id = data.id;
 
-    bills.forEach(client => {
-        if (client.id == id) {
-            var payedArray = client.bill;
-            client.bill = [];
-            payedBills.forEach(element => {
-                if (element.username == client.username) {
-                    element.payed = payedArray;
+    // Empty the bill array in Bills of the client
+    // Store that array for the payed-bills
+    // if client has not been stored in payed-bills. add him    
+
+    Bills.findOne({ id: id }, function (err, data) {
+        if (err) {
+            res.json({ message: err })
+        } else {
+            var tempArray = data.bill;
+            var username = data.username
+            Bills.updateOne({username:username},{$set:{bill:[]}}, function(err,data){
+                if (err) {
+                    console.log(err);
+                } else {
+                    console.log(data);
+                }
+            })
+            Payed.findOne({ username: username }, function (err, data){
+                if ( err ){
+                    registerDay.json({message:err})
+                } else {
+                    var now = new Date();
+                    if (!data) {
+                        var newData = {
+                            "username":username,
+                            "payed":[{
+                                "cocktails":tempArray,
+                                "date":now.toJSON()
+                            }]
+                        };
+                        var newPayed = new Payed(newData);
+                        newPayed.save(function (err, saved){
+                            if ( err) {
+                                res.json({message:err})
+                            } else {
+                                res.json(saved);
+                            }
+                        });
+                    }  else {
+                        var newData = {
+                            "cocktails":tempArray,
+                            "date":now.toJSON
+                        };
+                        Payed.updateOne({username:username},{$push:{payed:newData}}, function(err, data){
+                            if(err) {
+                                res.json({message:err});
+                            } else {
+                                res.json(data);
+                            }
+                        });
+
+                    }
                 }
             });
         }
-    });
+    })
 
-    var parsingData = JSON.stringify(bills);
-    var parsingData2 = JSON.stringify(payedBills);
-    fs.writeFile('bills.json', parsingData, finished);
-    fs.writeFile('payed-bills.json', parsingData2, finished);
-    function finished() {
-        console.log("PAYED");
-    }
-    response.send(id);
+    // bills.forEach(client => {
+    //     if (client.id == id) {
+    //         var payedArray = client.bill;
+    //         client.bill = [];
+    //         payedBills.forEach(element => {
+    //             if (element.username == client.username) {
+    //                 element.payed = payedArray;
+    //             }
+    //         });
+    //     }
+    // });
+
+    // var parsingData = JSON.stringify(bills);
+    // var parsingData2 = JSON.stringify(payedBills);
+    // fs.writeFile('bills.json', parsingData, finished);
+    // fs.writeFile('payed-bills.json', parsingData2, finished);
+    // function finished() {
+    //     console.log("PAYED");
+    // }
+    // response.send(id);
 }
 
 function getClient(req, res) {
@@ -533,10 +603,10 @@ function getClients(req, res) {
 function addDay(req, res) {
     var data = req.body;
     var newTijdslot = new Tijdsloten(data);
-    newTijdslot.save(function(err,saved) {
-        if(err) {
-            res.json({message:err})
-        } else{
+    newTijdslot.save(function (err, saved) {
+        if (err) {
+            res.json({ message: err })
+        } else {
             res.json(saved);
         }
     })
@@ -547,10 +617,10 @@ function removeDay(req, res) {
     var day = data.day;
     var month = data.month;
 
-    Tijdsloten.remove({day:day,month:month}, function(err,data){
-        if(err){
-            res.json({message:err})
-        } else{
+    Tijdsloten.remove({ day: day, month: month }, function (err, data) {
+        if (err) {
+            res.json({ message: err })
+        } else {
             res.json(data)
         }
     })
@@ -577,19 +647,19 @@ function registerDay(req, res) {
         //     }
         // });
 
-        Tijdsloten.find(function(err,data){
-            if(err){
-                res.json({message:err})
+        Tijdsloten.find(function (err, data) {
+            if (err) {
+                res.json({ message: err })
             } else {
                 data.forEach(tijdslot => {
-                    if(givenDay == tijdslot.day && givenMonth == tijdslot.month) {
-                        if(tijdslot.registered.length >= 3) {
+                    if (givenDay == tijdslot.day && givenMonth == tijdslot.month) {
+                        if (tijdslot.registered.length >= 3) {
                             corona = true;
                             res.send("corona")
                         } else {
-                            Tijdsloten.updateOne({_id:tijdslot._id}, {$push:{registered:name}}, function(err, data) {
+                            Tijdsloten.updateOne({ _id: tijdslot._id }, { $push: { registered: name } }, function (err, data) {
                                 if (err) {
-                                    res.json({message:err});
+                                    res.json({ message: err });
                                 } else {
                                     res.json(data)
                                 }
@@ -628,14 +698,14 @@ function getTimeslots(req, res) {
         //     sendingData.push(sendingSlot);
         // });
         // res.send(JSON.stringify(sendingData));
-        Tijdsloten.find(function (err,data) {
+        Tijdsloten.find(function (err, data) {
             if (err) {
-                res.json({message:err})
+                res.json({ message: err })
             } else {
                 var name = req.user.username;
                 var sendingData = []
                 data.forEach(tijdslot => {
-                    if(tijdslot.registered.includes(name)){
+                    if (tijdslot.registered.includes(name)) {
                         tijdslot.occupied = true;
                         console.log(tijdslot);
                     }
@@ -647,9 +717,9 @@ function getTimeslots(req, res) {
         })
     } else {
         Tijdsloten.find(function (err, data) {
-            if(err) {
-                res.json({message:err})
-            } else{
+            if (err) {
+                res.json({ message: err })
+            } else {
                 res.json(data);
             }
         })
@@ -677,10 +747,10 @@ function unregisterDay(req, res) {
     // function finished() {
     //     response.send(parsingData);
     // }
-    Tijdsloten.updateOne({day:day,month:month}, {$pull:{registered:name}}, function(err, data){
-        if (err){
-            res.json({message:err})
-        } else{
+    Tijdsloten.updateOne({ day: day, month: month }, { $pull: { registered: name } }, function (err, data) {
+        if (err) {
+            res.json({ message: err })
+        } else {
             res.json(data);
         }
     })

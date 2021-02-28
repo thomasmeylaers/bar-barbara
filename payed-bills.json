@@ -1,1 +1,4 @@
-{"username":"cunt","payed":[]}
+{"username":"cunt","payed":[{
+    "cocktail":"cuba libre",
+    "date": "Date.now"
+}]}

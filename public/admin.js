@@ -142,17 +142,18 @@ $(function () {
             data: JSON.stringify(sendData),
             method: "POST",
             contentType: "application/json",
-            succes: (response) => {
-                location.reload();
-            }
+            success: (response) => {
+                console.log(response);
+                location.reload();            }
         });
     });
 
     $removeIngredient.on("click", function () {
         $.ajax(window.location.origin+"/ingredients/remove/" + $removeName.val(), {
             method: "GET",
-            succes: (response) => {
+            success: (response) => {
                 console.log(response);
+                location.reload();
             }
         });
     });
@@ -181,11 +182,11 @@ $(function () {
             ingredients: savedIngredients
         };
 
-        $.ajax(window.location.origin+"/addrecipe", {
+        $.ajax(window.location.origin+"/recipes/add", {
             data: JSON.stringify(sendingData),
             method: "POST",
             contentType: "application/json",
-            succes: (response) => {
+            success: (response) => {
                 console.log(response);
                 location.reload();
             }
@@ -194,10 +195,11 @@ $(function () {
 
     $removeRecipe.on("click", function () {
         var name = $nameRemoveRecipe.val();
-        $.ajax(window.location.origin+"/removerecipe/" + name, {
+        $.ajax(window.location.origin+"/recipes/remove/" + name, {
             method: "GET",
-            succes: (response) => {
+            success: (response) => {
                 console.log(response);
+                location.reload();
             }
         });
     });
