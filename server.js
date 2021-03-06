@@ -83,18 +83,18 @@ app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(passport.initialize());
 app.use(passport.session());
 
-var ingredientsData = fs.readFileSync('ingredients.json');
-var ingredients = JSON.parse(ingredientsData);
-var recipesData = fs.readFileSync('recipes.json');
-var recipes = JSON.parse(recipesData);
-var billsData = fs.readFileSync('bills.json');
-var bills = JSON.parse(billsData);
-var tijdslotenData = fs.readFileSync('tijdsloten.json');
-var tijdsloten = JSON.parse(tijdslotenData);
-var ordersData = fs.readFileSync("orders.json");
-var orders = JSON.parse(ordersData);
-var payedBillsData = fs.readFileSync("payed-bills.json");
-var payedBills = JSON.parse(payedBillsData);
+// var ingredientsData = fs.readFileSync('ingredients.json');
+// var ingredients = JSON.parse(ingredientsData);
+// var recipesData = fs.readFileSync('recipes.json');
+// var recipes = JSON.parse(recipesData);
+// var billsData = fs.readFileSync('bills.json');
+// var bills = JSON.parse(billsData);
+// var tijdslotenData = fs.readFileSync('tijdsloten.json');
+// var tijdsloten = JSON.parse(tijdslotenData);
+// var ordersData = fs.readFileSync("orders.json");
+// var orders = JSON.parse(ordersData);
+// var payedBillsData = fs.readFileSync("payed-bills.json");
+// var payedBills = JSON.parse(payedBillsData);
 
 app.use(express.static('public'));
 // server.use(serveStatic(__dirname + "/client/dist"));
@@ -254,18 +254,46 @@ function getRecipes(req, res) {
 
 
 function addRecipe(req, res) {
-    const newRecipe = new Recipe(req.body);
+    const postData = req.body;
     Recipe.findOne({ name: req.body.name }, function (err, data) {
         if (data) {
             res.json({ message: "recipe already exists" })
         } else {
-            newRecipe.save(function (err, saved) {
+            Ingredient.find(function (err, data) {
                 if (err) {
                     res.json({ message: err });
                 } else {
-                    res.json(saved);
+                    var price = 0;
+                    postData.ingredients.forEach(addedIngredient => {
+                        data.forEach(ingredient => {
+
+                            if (addedIngredient.ingredient == ingredient.name) {
+                                console.log(ingredient.price);
+                                console.log(addedIngredient.amount[0]);
+                                console.log(addedIngredient.amount[1]);
+                                price += Number(ingredient.price) * Number(addedIngredient.amount[0]) * Number(addedIngredient.amount[1]);
+                            }
+                        });
+                    });
+                    postData.price = Math.ceil(price);
+                    console.log(postData);
+                    var sendData = new Recipe(postData);
+                    sendData.save(function (err, saved) {
+                        if (err) {
+                            res.json({ message: err });
+                        } else {
+                            res.json(saved);
+                        }
+                    });
                 }
             });
+            // newRecipe.save(function (err, saved) {
+            //     if (err) {
+            //         res.json({ message: err });
+            //     } else {
+            //         res.json(saved);
+            //     }
+            // });
         }
     });
 }
@@ -333,14 +361,13 @@ function orderDrink(req, res) {
                         }
                     })
                 } else {
-                    console.log("im here");
                     Bills.updateOne({ username: name }, { $push: { bill: cocktail } }, function (err, data) {
                         if (err) {
                             res.json({ message: err })
                         } else {
 
                             var newCard = card + 1;
-                            Bills.updateOne({ username: name }, { $set: {card:newCard} }, function(err,data){
+                            Bills.updateOne({ username: name }, { $set: { card: newCard } }, function (err, data) {
                                 if (err) {
                                     res.json({ message: err })
                                 } else {
@@ -369,39 +396,38 @@ function finishOrder(req, res) {
     })
 }
 
-function deleteOrder(request, response) {
-    var data = request.params;
+function deleteOrder(req, res) {
+    // Deletes the order from the Orders list
+    // Deletes the order from the Clients bill
+    var data = req.params;
     var id = data.id;
-    var drinkName;
-    var clientName;
-
-    orders.forEach(order => {
-        if (order.id == id) {
-            clientName = order.name;
-            drinkName = order.cocktail;
-            const index = orders.indexOf(order);
-            if (index > -1) {
-                orders.splice(index, 1);
-            }
+    console.log(id);
+    Order.findOne({ _id: id }, function (err, data) { 
+        if (err) {
+            res.json({message:err})
+        } else {
+            var cocktailName = data.cocktail;
+            var name = data.name;
+            Bills.updateOne({username:name}, {$pull:{bill:cocktailName}}, function(err,data) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    console.log(data);
+                }
+            });
+            Order.deleteOne({_id:id}, function(err,data) {
+                if (err) {
+                    console.log("err");
+                    res.json({message:err})
+                } else {
+                    console.log('succ');
+                    res.json(data);
+                }
+            })
         }
-    });
-    bills.forEach(user => {
-        if (user.username == clientName) {
-            const index = user.bill.indexOf(drinkName);
-            if (index > -1) {
-                user.bill.splice(index, 1);
-            }
-        }
-    });
-    var parsingData = JSON.stringify(orders);
-    fs.writeFile('orders.json', parsingData, finished);
-    var parsingData = JSON.stringify(bills);
-    fs.writeFile('bills.json', parsingData, finished);
-    function finished() {
-        console.log(id);
-    }
-    response.send(id);
 
+
+    });
 }
 
 function getOrders(req, res) {
@@ -533,10 +559,10 @@ function getClients(req, res) {
 function addDay(req, res) {
     var data = req.body;
     var newTijdslot = new Tijdsloten(data);
-    newTijdslot.save(function(err,saved) {
-        if(err) {
-            res.json({message:err})
-        } else{
+    newTijdslot.save(function (err, saved) {
+        if (err) {
+            res.json({ message: err })
+        } else {
             res.json(saved);
         }
     })
@@ -547,10 +573,10 @@ function removeDay(req, res) {
     var day = data.day;
     var month = data.month;
 
-    Tijdsloten.remove({day:day,month:month}, function(err,data){
-        if(err){
-            res.json({message:err})
-        } else{
+    Tijdsloten.remove({ day: day, month: month }, function (err, data) {
+        if (err) {
+            res.json({ message: err })
+        } else {
             res.json(data)
         }
     })
@@ -577,19 +603,19 @@ function registerDay(req, res) {
         //     }
         // });
 
-        Tijdsloten.find(function(err,data){
-            if(err){
-                res.json({message:err})
+        Tijdsloten.find(function (err, data) {
+            if (err) {
+                res.json({ message: err })
             } else {
                 data.forEach(tijdslot => {
-                    if(givenDay == tijdslot.day && givenMonth == tijdslot.month) {
-                        if(tijdslot.registered.length >= 3) {
+                    if (givenDay == tijdslot.day && givenMonth == tijdslot.month) {
+                        if (tijdslot.registered.length >= 3) {
                             corona = true;
                             res.send("corona")
                         } else {
-                            Tijdsloten.updateOne({_id:tijdslot._id}, {$push:{registered:name}}, function(err, data) {
+                            Tijdsloten.updateOne({ _id: tijdslot._id }, { $push: { registered: name } }, function (err, data) {
                                 if (err) {
-                                    res.json({message:err});
+                                    res.json({ message: err });
                                 } else {
                                     res.json(data)
                                 }
@@ -628,14 +654,14 @@ function getTimeslots(req, res) {
         //     sendingData.push(sendingSlot);
         // });
         // res.send(JSON.stringify(sendingData));
-        Tijdsloten.find(function (err,data) {
+        Tijdsloten.find(function (err, data) {
             if (err) {
-                res.json({message:err})
+                res.json({ message: err })
             } else {
                 var name = req.user.username;
                 var sendingData = []
                 data.forEach(tijdslot => {
-                    if(tijdslot.registered.includes(name)){
+                    if (tijdslot.registered.includes(name)) {
                         tijdslot.occupied = true;
                         console.log(tijdslot);
                     }
@@ -647,9 +673,9 @@ function getTimeslots(req, res) {
         })
     } else {
         Tijdsloten.find(function (err, data) {
-            if(err) {
-                res.json({message:err})
-            } else{
+            if (err) {
+                res.json({ message: err })
+            } else {
                 res.json(data);
             }
         })
@@ -677,10 +703,10 @@ function unregisterDay(req, res) {
     // function finished() {
     //     response.send(parsingData);
     // }
-    Tijdsloten.updateOne({day:day,month:month}, {$pull:{registered:name}}, function(err, data){
-        if (err){
-            res.json({message:err})
-        } else{
+    Tijdsloten.updateOne({ day: day, month: month }, { $pull: { registered: name } }, function (err, data) {
+        if (err) {
+            res.json({ message: err })
+        } else {
             res.json(data);
         }
     })

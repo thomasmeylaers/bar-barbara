@@ -29,7 +29,7 @@ $(function () {
         type: 'GET',
         url: window.location.origin+'/ingredients',
         success: (data) => {
-            var data = data;
+            console.log(data);
             data.forEach(ingredient => {
                 availableIngredients.push(ingredient.name);
             });
@@ -42,11 +42,14 @@ $(function () {
         success: (data) => {
             var dataParsed = data;
             dataParsed.forEach(order => {
-                pendingOrders.push(order);
+                if(!order.finished){
+                    pendingOrders.push(order);
+                }
+                
             });
             pendingOrders.forEach(order => {
                 var time = new Date(order.time);
-                $ordersList.append('<li>' + order.name + '|' + order.cocktail + '|' + time.getHours() + ':' + time.getMinutes() + '<button order-id="' + order.id + '" class="finish-order">finish</button><button order-id="' + order.id + '" class="delete-order">Delete</button></li>')
+                $ordersList.append('<li>' + order.name + '|' + order.cocktail + '|' + time.getHours() + ':' + time.getMinutes() + '<button order-id="' + order._id + '" class="finish-order">finish</button><button order-id="' + order._id + '" class="delete-order">Delete</button></li>')
             });
         }
     });
@@ -142,7 +145,7 @@ $(function () {
             data: JSON.stringify(sendData),
             method: "POST",
             contentType: "application/json",
-            succes: (response) => {
+            success: (response) => {
                 location.reload();
             }
         });
@@ -151,8 +154,8 @@ $(function () {
     $removeIngredient.on("click", function () {
         $.ajax(window.location.origin+"/ingredients/remove/" + $removeName.val(), {
             method: "GET",
-            succes: (response) => {
-                console.log(response);
+            success: (response) => {
+                location.reload();
             }
         });
     });
@@ -175,17 +178,17 @@ $(function () {
     });
 
     $doneRecipe.on("click", function () {
-        var recipeName = $nameRecipe.val();
+        var recipeName = $nameRecipe.val().toLowerCase();
         var sendingData = {
             name: recipeName,
             ingredients: savedIngredients
         };
 
-        $.ajax(window.location.origin+"/addrecipe", {
+        $.ajax(window.location.origin+"/recipes/add", {
             data: JSON.stringify(sendingData),
             method: "POST",
             contentType: "application/json",
-            succes: (response) => {
+            success: (response) => {
                 console.log(response);
                 location.reload();
             }
@@ -194,10 +197,11 @@ $(function () {
 
     $removeRecipe.on("click", function () {
         var name = $nameRemoveRecipe.val();
-        $.ajax(window.location.origin+"/removerecipe/" + name, {
+        $.ajax(window.location.origin+"/recipes/remove/" + name, {
             method: "GET",
-            succes: (response) => {
+            success: (response) => {
                 console.log(response);
+                location.reload();
             }
         });
     });
