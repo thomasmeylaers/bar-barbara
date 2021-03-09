@@ -5,7 +5,8 @@ const RecipeSchema = mongoose.Schema({
     ingredients: {
         type: Array,
         "default":[]
-    }
+    },
+    price: Number
 })
 
 module.exports = mongoose.model('Recipe', RecipeSchema);

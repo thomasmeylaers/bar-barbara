@@ -11,6 +11,7 @@ const mongoose = require('mongoose');
 const flash = require('express-flash');
 const session = require('express-session');
 const favicon = require('serve-favicon');
+const webPush = require('web-push');
 let port = process.env.PORT || 3000;
 
 // Require schemas
@@ -20,50 +21,20 @@ const Bills = require('./models/bills');
 const Order = require('./models/order');
 const Tijdsloten = require('./models/tijdsloten');
 const Payed = require('./models/payed-bills');
-
-// const initializePassport = require('./passport-config');
-// initializePassport(
-//     passport,
-//     username => bills.find(user => user.username === username),
-//     id => bills.find(user => user.id === id)
-// );
-
-// initializePassport(
-//     passport,
-//     username => getByUsername(username),
-//     id => getById(id)
-// );
+const Push = require('./models/push');
 
 require('./passport')(passport);
 
-function getByUsername(username) {
-    // var ape = {};
-    // Bills.find({username:username}, function(err, data) {
-    //     console.log("ape1:");
-    //     console.log(ape);
-    //     ape = data
-    //     console.log("ape2:");
-    //     console.log(ape);
-    //     return ape;
-    // });
-    // console.log("ape3");
-    // console.log(ape);
-}
-
-function getById(id) {
-    var num;
-    Bills.findOne({ id: id }, function (err, data) {
-        if (err) {
-            return 0;
-        } else {
-            num = data;
-        }
-    });
-    return num;
-}
-
-
 var app = express();
+const publicVapidKey = "BAQY-g0nd6wwa3NRSq5Q0DcKReOW28LYZcchoql79C2pu-u9uP8fQr6eGir3BNlmHYbdHFXbcv3prbwy08qYvgA"
+const privateVapidKey = "5RJzrt3pZt91ikJVOSlODCCmPSwalfvxlHaqFeJkp1Y"
+
+//WEBPUSH INIT
+webPush.setVapidDetails('mailto:balthazardeveroveraar@gmail.com', publicVapidKey, privateVapidKey);
+var pushSubscription = {endpoint:"https://fcm.googleapis.com/fcm/send/dmCm8IgPH7w:APA91bG5tV6AwF7xsWpTbFw8NdfMT7WrBSLKJjGUuvScZ2w0M9aT1SMKAeLQU5rA6WdyTfhnAy5bz_6FSbe-qSyTnl0yh8tq7If2GzfifkP3x9FV4VhBHtKHDcwlljpNjuwIYXvy2kSZ",
+expirationTime:null,
+keys:{p256dh:"BJbDn9nIiJkRTDgSBB5WXP_UR1pZJM8jn023haAAISANttIKiNXz4utv6ZmDZxF4XdYVWXD2raq_ffPcOx7z5_8",auth:"0bKTA27v_huqmMMuaEWLOA"}}
+
 
 mongoose.connect('mongodb+srv://thomas:dbPassw123@bar-cluster.nd5tg.mongodb.net/bar-barbara?retryWrites=true&w=majority', { useNewUrlParser: true }, () => {
     console.log('connected to db');
@@ -80,26 +51,62 @@ app.use(session({
     cookie: { _expires: 36000000 }
 }));
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-
 app.use(passport.initialize());
 app.use(passport.session());
-
-// var ingredientsData = fs.readFileSync('ingredients.json');
-// var ingredients = JSON.parse(ingredientsData);
-// var recipesData = fs.readFileSync('recipes.json');
-// var recipes = JSON.parse(recipesData);
-// var billsData = fs.readFileSync('bills.json');
-// var bills = JSON.parse(billsData);
-// var tijdslotenData = fs.readFileSync('tijdsloten.json');
-// var tijdsloten = JSON.parse(tijdslotenData);
-// var ordersData = fs.readFileSync("orders.json");
-// var orders = JSON.parse(ordersData);
-// var payedBillsData = fs.readFileSync("payed-bills.json");
-// var payedBills = JSON.parse(payedBillsData);
-
 app.use(express.static('public'));
 // server.use(serveStatic(__dirname + "/client/dist"));
 app.set('view engine', 'ejs');
+
+// Subscrive Route
+app.post('/subscribe', (req, res) => {
+    // get pushSubscription object
+    const subscription = req.body;
+
+    // Send 201 status
+    res.status(201).json({});
+
+    // create payload
+    const payload = JSON.stringify({ title: 'Push test' });
+
+    // pass object into sendNotification
+    webPush.sendNotification(subscription, payload).catch(err => console.error(err));
+})
+
+app.post('/test', (req, res) => {
+    const payload = JSON.stringify({ title: 'Push test' });
+    webPush.sendNotification(pushSubscription, payload).catch(err => console.error(err));
+})
+
+app.post('/subscribepush', (req,res) => {
+    const subscription = req.body;
+    let newSubscription = new Push(subscription);
+    Push.findOne({endpoint:subscription.endpoint}, function(err,data){
+        if (data == null) {
+            newSubscription.save(function(err,data){
+                if(err) {
+                    res.json({message:err});
+                } else {
+                    res.json({message:data});
+                }
+            });
+        }
+    })
+
+})
+
+app.post('/sendnotification', (req,res)=>{
+    Push.find(function(err,data){
+        if(err) {
+            res.json({message:err})
+        } else {
+            let subscriptions = data;
+            subscriptions.forEach(subscription => {
+                const payload = JSON.stringify({ title: 'Push test' });
+                webPush.sendNotification(subscription, payload).catch(err => console.error(err));
+            });
+        }
+    })
+});
 
 
 // Handling references
@@ -257,18 +264,46 @@ function getRecipes(req, res) {
 
 
 function addRecipe(req, res) {
-    const newRecipe = new Recipe(req.body);
+    const postData = req.body;
     Recipe.findOne({ name: req.body.name }, function (err, data) {
         if (data) {
             res.json({ message: "recipe already exists" })
         } else {
-            newRecipe.save(function (err, saved) {
+            Ingredient.find(function (err, data) {
                 if (err) {
                     res.json({ message: err });
                 } else {
-                    res.json(saved);
+                    var price = 0;
+                    postData.ingredients.forEach(addedIngredient => {
+                        data.forEach(ingredient => {
+
+                            if (addedIngredient.ingredient == ingredient.name) {
+                                console.log(ingredient.price);
+                                console.log(addedIngredient.amount[0]);
+                                console.log(addedIngredient.amount[1]);
+                                price += Number(ingredient.price) * Number(addedIngredient.amount[0]) * Number(addedIngredient.amount[1]);
+                            }
+                        });
+                    });
+                    postData.price = Math.ceil(price);
+                    console.log(postData);
+                    var sendData = new Recipe(postData);
+                    sendData.save(function (err, saved) {
+                        if (err) {
+                            res.json({ message: err });
+                        } else {
+                            res.json(saved);
+                        }
+                    });
                 }
             });
+            // newRecipe.save(function (err, saved) {
+            //     if (err) {
+            //         res.json({ message: err });
+            //     } else {
+            //         res.json(saved);
+            //     }
+            // });
         }
     });
 }
@@ -336,7 +371,6 @@ function orderDrink(req, res) {
                         }
                     })
                 } else {
-                    console.log("im here");
                     Bills.updateOne({ username: name }, { $push: { bill: cocktail } }, function (err, data) {
                         if (err) {
                             res.json({ message: err })
@@ -372,39 +406,38 @@ function finishOrder(req, res) {
     })
 }
 
-function deleteOrder(request, response) {
-    var data = request.params;
+function deleteOrder(req, res) {
+    // Deletes the order from the Orders list
+    // Deletes the order from the Clients bill
+    var data = req.params;
     var id = data.id;
-    var drinkName;
-    var clientName;
-
-    orders.forEach(order => {
-        if (order.id == id) {
-            clientName = order.name;
-            drinkName = order.cocktail;
-            const index = orders.indexOf(order);
-            if (index > -1) {
-                orders.splice(index, 1);
-            }
+    console.log(id);
+    Order.findOne({ _id: id }, function (err, data) {
+        if (err) {
+            res.json({ message: err })
+        } else {
+            var cocktailName = data.cocktail;
+            var name = data.name;
+            Bills.updateOne({ username: name }, { $pull: { bill: cocktailName } }, function (err, data) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    console.log(data);
+                }
+            });
+            Order.deleteOne({ _id: id }, function (err, data) {
+                if (err) {
+                    console.log("err");
+                    res.json({ message: err })
+                } else {
+                    console.log('succ');
+                    res.json(data);
+                }
+            })
         }
-    });
-    bills.forEach(user => {
-        if (user.username == clientName) {
-            const index = user.bill.indexOf(drinkName);
-            if (index > -1) {
-                user.bill.splice(index, 1);
-            }
-        }
-    });
-    var parsingData = JSON.stringify(orders);
-    fs.writeFile('orders.json', parsingData, finished);
-    var parsingData = JSON.stringify(bills);
-    fs.writeFile('bills.json', parsingData, finished);
-    function finished() {
-        console.log(id);
-    }
-    response.send(id);
 
+
+    });
 }
 
 function getOrders(req, res) {
@@ -486,9 +519,9 @@ function deleteClient(request, response) {
 }
 
 function getPayed(req, res) {
-    Payed.find(function (err, data){
+    Payed.find(function (err, data) {
         if (err) {
-            res.json({message: err})
+            res.json({ message: err })
         } else {
             res.json(data);
         }
@@ -509,42 +542,42 @@ function payed(req, res) {
         } else {
             var tempArray = data.bill;
             var username = data.username
-            Bills.updateOne({username:username},{$set:{bill:[]}}, function(err,data){
+            Bills.updateOne({ username: username }, { $set: { bill: [] } }, function (err, data) {
                 if (err) {
                     console.log(err);
                 } else {
                     console.log(data);
                 }
             })
-            Payed.findOne({ username: username }, function (err, data){
-                if ( err ){
-                    registerDay.json({message:err})
+            Payed.findOne({ username: username }, function (err, data) {
+                if (err) {
+                    registerDay.json({ message: err })
                 } else {
                     var now = new Date();
                     if (!data) {
                         var newData = {
-                            "username":username,
-                            "payed":[{
-                                "cocktails":tempArray,
-                                "date":now.toJSON()
+                            "username": username,
+                            "payed": [{
+                                "cocktails": tempArray,
+                                "date": now.toJSON()
                             }]
                         };
                         var newPayed = new Payed(newData);
-                        newPayed.save(function (err, saved){
-                            if ( err) {
-                                res.json({message:err})
+                        newPayed.save(function (err, saved) {
+                            if (err) {
+                                res.json({ message: err })
                             } else {
                                 res.json(saved);
                             }
                         });
-                    }  else {
+                    } else {
                         var newData = {
-                            "cocktails":tempArray,
-                            "date":now.toJSON
+                            "cocktails": tempArray,
+                            "date": now.toJSON
                         };
-                        Payed.updateOne({username:username},{$push:{payed:newData}}, function(err, data){
-                            if(err) {
-                                res.json({message:err});
+                        Payed.updateOne({ username: username }, { $push: { payed: newData } }, function (err, data) {
+                            if (err) {
+                                res.json({ message: err });
                             } else {
                                 res.json(data);
                             }
