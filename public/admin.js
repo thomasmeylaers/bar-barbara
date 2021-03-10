@@ -76,8 +76,6 @@ $(function () {
         }
     }
 
-    subscribeUser();
-
     function displayNotification() {
         if (Notification.permission == 'granted') {
             navigator.serviceWorker.getRegistration().then(function (reg) {
@@ -143,7 +141,7 @@ $(function () {
         });
     })
     $register.on('click', async () => {
-        displayNotification();
+        subscribeUser();
     })
 
 

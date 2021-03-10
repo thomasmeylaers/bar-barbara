@@ -101,7 +101,7 @@ app.post('/sendnotification', (req,res)=>{
         } else {
             let subscriptions = data;
             subscriptions.forEach(subscription => {
-                const payload = JSON.stringify({ title: 'Push test' });
+                const payload = JSON.stringify({ title: 'Bar Barbara' });
                 webPush.sendNotification(subscription, payload).catch(err => console.error(err));
             });
         }
