@@ -31,9 +31,11 @@ const privateVapidKey = "5RJzrt3pZt91ikJVOSlODCCmPSwalfvxlHaqFeJkp1Y"
 
 //WEBPUSH INIT
 webPush.setVapidDetails('mailto:balthazardeveroveraar@gmail.com', publicVapidKey, privateVapidKey);
-var pushSubscription = {endpoint:"https://fcm.googleapis.com/fcm/send/dmCm8IgPH7w:APA91bG5tV6AwF7xsWpTbFw8NdfMT7WrBSLKJjGUuvScZ2w0M9aT1SMKAeLQU5rA6WdyTfhnAy5bz_6FSbe-qSyTnl0yh8tq7If2GzfifkP3x9FV4VhBHtKHDcwlljpNjuwIYXvy2kSZ",
-expirationTime:null,
-keys:{p256dh:"BJbDn9nIiJkRTDgSBB5WXP_UR1pZJM8jn023haAAISANttIKiNXz4utv6ZmDZxF4XdYVWXD2raq_ffPcOx7z5_8",auth:"0bKTA27v_huqmMMuaEWLOA"}}
+var pushSubscription = {
+    endpoint: "https://fcm.googleapis.com/fcm/send/dmCm8IgPH7w:APA91bG5tV6AwF7xsWpTbFw8NdfMT7WrBSLKJjGUuvScZ2w0M9aT1SMKAeLQU5rA6WdyTfhnAy5bz_6FSbe-qSyTnl0yh8tq7If2GzfifkP3x9FV4VhBHtKHDcwlljpNjuwIYXvy2kSZ",
+    expirationTime: null,
+    keys: { p256dh: "BJbDn9nIiJkRTDgSBB5WXP_UR1pZJM8jn023haAAISANttIKiNXz4utv6ZmDZxF4XdYVWXD2raq_ffPcOx7z5_8", auth: "0bKTA27v_huqmMMuaEWLOA" }
+}
 
 
 mongoose.connect('mongodb+srv://thomas:dbPassw123@bar-cluster.nd5tg.mongodb.net/bar-barbara?retryWrites=true&w=majority', { useNewUrlParser: true }, () => {
@@ -77,16 +79,16 @@ app.post('/test', (req, res) => {
     webPush.sendNotification(pushSubscription, payload).catch(err => console.error(err));
 })
 
-app.post('/subscribepush', (req,res) => {
+app.post('/subscribepush', (req, res) => {
     const subscription = req.body;
     let newSubscription = new Push(subscription);
-    Push.findOne({endpoint:subscription.endpoint}, function(err,data){
+    Push.findOne({ endpoint: subscription.endpoint }, function(err, data) {
         if (data == null) {
-            newSubscription.save(function(err,data){
-                if(err) {
-                    res.json({message:err});
+            newSubscription.save(function(err, data) {
+                if (err) {
+                    res.json({ message: err });
                 } else {
-                    res.json({message:data});
+                    res.json({ message: data });
                 }
             });
         }
@@ -94,10 +96,10 @@ app.post('/subscribepush', (req,res) => {
 
 })
 
-app.post('/sendnotification', (req,res)=>{
-    Push.find(function(err,data){
-        if(err) {
-            res.json({message:err})
+app.post('/sendnotification', (req, res) => {
+    Push.find(function(err, data) {
+        if (err) {
+            res.json({ message: err })
         } else {
             let subscriptions = data;
             subscriptions.forEach(subscription => {
@@ -182,11 +184,11 @@ function addIngredient(req, res) {
         name: req.body.name,
         price: req.body.price
     })
-    Ingredient.findOne({ name: req.body.name }, function (err, doc) {
+    Ingredient.findOne({ name: req.body.name }, function(err, doc) {
         if (doc != null) {
             res.json({ message: "This Ingredient already exists" })
         } else {
-            newIngredient.save(function (err, saved) {
+            newIngredient.save(function(err, saved) {
                 if (err) {
                     res.json({ message: errr });
                 } else {
@@ -204,7 +206,7 @@ function addIngredient(req, res) {
 function getIngredients(req, res) {
     var name = req.params.name;
     if (name) {
-        Ingredient.findOne({ name: name }, function (err, data) {
+        Ingredient.findOne({ name: name }, function(err, data) {
             if (err) {
                 res.json({ message: err })
             } else {
@@ -212,7 +214,7 @@ function getIngredients(req, res) {
             }
         });
     } else {
-        Ingredient.find(function (err, doc) {
+        Ingredient.find(function(err, doc) {
             if (err) {
                 res.json({ message: err })
             } else {
@@ -224,11 +226,11 @@ function getIngredients(req, res) {
 
 function deleteIngredient(req, res) {
     var name = req.params.name;
-    Ingredient.findOne({ name: name }, function (err, doc) {
+    Ingredient.findOne({ name: name }, function(err, doc) {
         if (!doc) {
             res.json({ message: "There is no such ingredient" })
         } else {
-            Ingredient.deleteOne({ name: name }, function (err, removed) {
+            Ingredient.deleteOne({ name: name }, function(err, removed) {
                 if (err) {
                     res.json({ message: err });
                 } else {
@@ -244,7 +246,7 @@ function deleteIngredient(req, res) {
 function getRecipes(req, res) {
     var name = req.params.name;
     if (name) {
-        Recipe.findOne({ name: name }, function (err, data) {
+        Recipe.findOne({ name: name }, function(err, data) {
             if (err) {
                 res.json({ message: err })
             } else {
@@ -252,7 +254,7 @@ function getRecipes(req, res) {
             }
         });
     } else {
-        Recipe.find(function (err, doc) {
+        Recipe.find(function(err, doc) {
             if (err) {
                 res.json({ message: err })
             } else {
@@ -265,11 +267,11 @@ function getRecipes(req, res) {
 
 function addRecipe(req, res) {
     const postData = req.body;
-    Recipe.findOne({ name: req.body.name }, function (err, data) {
+    Recipe.findOne({ name: req.body.name }, function(err, data) {
         if (data) {
             res.json({ message: "recipe already exists" })
         } else {
-            Ingredient.find(function (err, data) {
+            Ingredient.find(function(err, data) {
                 if (err) {
                     res.json({ message: err });
                 } else {
@@ -288,7 +290,7 @@ function addRecipe(req, res) {
                     postData.price = Math.ceil(price);
                     console.log(postData);
                     var sendData = new Recipe(postData);
-                    sendData.save(function (err, saved) {
+                    sendData.save(function(err, saved) {
                         if (err) {
                             res.json({ message: err });
                         } else {
@@ -310,11 +312,11 @@ function addRecipe(req, res) {
 
 function deleteRecipe(req, res) {
     var name = req.params.name;
-    Recipe.findOne({ name: name }, function (err, doc) {
+    Recipe.findOne({ name: name }, function(err, doc) {
         if (!doc) {
             res.json({ message: "There is no such recipe" })
         } else {
-            Recipe.remove({ name: name }, function (err, removed) {
+            Recipe.remove({ name: name }, function(err, removed) {
                 if (err) {
                     res.json({ message: err });
                 } else {
@@ -338,7 +340,7 @@ function orderDrink(req, res) {
             finished: false
         };
         var newOrder = new Order(sendingData);
-        newOrder.save(function (err, saved) {
+        newOrder.save(function(err, saved) {
             if (err) {
                 console.log('err');
             } else {
@@ -357,38 +359,38 @@ function orderDrink(req, res) {
 
         //     }
         // });
-        Bills.findOne({ username: name }, function (err, data) {
-            if (err) {
-                res.json({ message: err })
-            } else {
-                var card = data.card;
-                if (card == 10) {
-                    Bills.updateOne({ username: name }, { $set: { card: 0 } }, function (err, data) {
-                        if (err) {
-                            res.json({ message: err })
-                        } else {
-                            res.json(data);
-                        }
-                    })
-                } else {
-                    Bills.updateOne({ username: name }, { $push: { bill: cocktail } }, function (err, data) {
-                        if (err) {
-                            res.json({ message: err })
-                        } else {
+        // Bills.findOne({ username: name }, function (err, data) {
+        //     if (err) {
+        //         res.json({ message: err })
+        //     } else {
+        //         var card = data.card;
+        //         if (card == 10) {
+        //             Bills.updateOne({ username: name }, { $set: { card: 0 } }, function (err, data) {
+        //                 if (err) {
+        //                     res.json({ message: err })
+        //                 } else {
+        //                     res.json(data);
+        //                 }
+        //             })
+        //         } else {
+        //             Bills.updateOne({ username: name }, { $push: { bill: cocktail } }, function (err, data) {
+        //                 if (err) {
+        //                     res.json({ message: err })
+        //                 } else {
 
-                            var newCard = card + 1;
-                            Bills.updateOne({ username: name }, { $set: { card: newCard } }, function (err, data) {
-                                if (err) {
-                                    res.json({ message: err })
-                                } else {
-                                    res.json(data);
-                                }
-                            })
-                        }
-                    })
-                }
-            }
-        })
+        //                     var newCard = card + 1;
+        //                     Bills.updateOne({ username: name }, { $set: { card: newCard } }, function (err, data) {
+        //                         if (err) {
+        //                             res.json({ message: err })
+        //                         } else {
+        //                             res.json(data);
+        //                         }
+        //                     })
+        //                 }
+        //             })
+        //         }
+        //     }
+        // })
     } else {
         res.send("unauthorized");
     }
@@ -397,13 +399,52 @@ function orderDrink(req, res) {
 function finishOrder(req, res) {
     var data = req.params;
     var id = data.id;
-    Order.updateOne({ _id: id }, { $set: { finished: true } }, function (err, data) {
+    Order.updateOne({ _id: id }, { $set: { finished: true } }, function(err, updated) {
         if (err) {
             res.json({ message: err });
         } else {
-            res.json(data);
+            Order.findOne({ _id: id }, (err, order) => {
+                var name = order.name;
+                var time = order.time;
+                var cocktail = order.cocktail;
+                Bills.findOne({ username: name }, function(err, data) {
+                    if (err) {
+                        res.json({ message: err })
+                    } else {
+                        console.log(`The data is ${data}`);
+                        var card = data.card;
+                        if (card == 10) {
+                            Bills.updateOne({ username: name }, { $set: { card: 0 } }, function(err, data) {
+                                if (err) {
+                                    res.json({ message: err })
+                                } else {
+                                    res.json(data);
+                                }
+                            })
+                        } else {
+                            Bills.updateOne({ username: name }, { $push: { bill: cocktail } }, function(err, data) {
+                                if (err) {
+                                    res.json({ message: err })
+                                } else {
+
+                                    var newCard = card + 1;
+                                    Bills.updateOne({ username: name }, { $set: { card: newCard } }, function(err, data) {
+                                        if (err) {
+                                            res.json({ message: err })
+                                        } else {
+                                            res.json(data);
+                                        }
+                                    })
+                                }
+                            })
+                        }
+                    }
+                })
+            })
+
         }
     })
+
 }
 
 function deleteOrder(req, res) {
@@ -412,20 +453,20 @@ function deleteOrder(req, res) {
     var data = req.params;
     var id = data.id;
     console.log(id);
-    Order.findOne({ _id: id }, function (err, data) {
+    Order.findOne({ _id: id }, function(err, data) {
         if (err) {
             res.json({ message: err })
         } else {
             var cocktailName = data.cocktail;
             var name = data.name;
-            Bills.updateOne({ username: name }, { $pull: { bill: cocktailName } }, function (err, data) {
+            Bills.updateOne({ username: name }, { $pull: { bill: cocktailName } }, function(err, data) {
                 if (err) {
                     console.log(err);
                 } else {
                     console.log(data);
                 }
             });
-            Order.deleteOne({ _id: id }, function (err, data) {
+            Order.deleteOne({ _id: id }, function(err, data) {
                 if (err) {
                     console.log("err");
                     res.json({ message: err })
@@ -441,7 +482,7 @@ function deleteOrder(req, res) {
 }
 
 function getOrders(req, res) {
-    Order.find(function (err, data) {
+    Order.find(function(err, data) {
         if (err) {
             res.json({ message: err })
         } else {
@@ -462,14 +503,14 @@ async function addClient(req, res) {
         // var parsingData = JSON.stringify(bills);
         // fs.writeFile('bills.json', parsingData, finished);
         const newClient = new Bills(user);
-        Bills.findOne({ username: user.username }, function (err, data) {
+        Bills.findOne({ username: user.username }, function(err, data) {
             if (err) {
                 res.json({ message: err })
             } else {
                 if (data != null) {
                     res.json({ message: "This user already exists" })
                 } else {
-                    newClient.save(function (err, saved) {
+                    newClient.save(function(err, saved) {
                         if (err) {
                             res.json({ message: err })
                         } else {
@@ -499,14 +540,14 @@ async function addClient(req, res) {
 function deleteClient(request, response) {
     var data = request.params;
     var name = data.name;
-    Ingredient.findOne({ username: name }, function (err, data) {
+    Ingredient.findOne({ username: name }, function(err, data) {
         if (err) {
             res.json({ message: err })
         } else {
             if (!data) {
                 res.json({ message: "no user found" })
             } else {
-                Bills.remove({ username: name }, function (err, removed) {
+                Bills.remove({ username: name }, function(err, removed) {
                     if (err) {
                         res.json({ message: err })
                     } else {
@@ -519,7 +560,7 @@ function deleteClient(request, response) {
 }
 
 function getPayed(req, res) {
-    Payed.find(function (err, data) {
+    Payed.find(function(err, data) {
         if (err) {
             res.json({ message: err })
         } else {
@@ -536,20 +577,20 @@ function payed(req, res) {
     // Store that array for the payed-bills
     // if client has not been stored in payed-bills. add him    
 
-    Bills.findOne({ id: id }, function (err, data) {
+    Bills.findOne({ id: id }, function(err, data) {
         if (err) {
             res.json({ message: err })
         } else {
             var tempArray = data.bill;
             var username = data.username
-            Bills.updateOne({ username: username }, { $set: { bill: [] } }, function (err, data) {
+            Bills.updateOne({ username: username }, { $set: { bill: [] } }, function(err, data) {
                 if (err) {
                     console.log(err);
                 } else {
                     console.log(data);
                 }
             })
-            Payed.findOne({ username: username }, function (err, data) {
+            Payed.findOne({ username: username }, function(err, data) {
                 if (err) {
                     registerDay.json({ message: err })
                 } else {
@@ -563,7 +604,7 @@ function payed(req, res) {
                             }]
                         };
                         var newPayed = new Payed(newData);
-                        newPayed.save(function (err, saved) {
+                        newPayed.save(function(err, saved) {
                             if (err) {
                                 res.json({ message: err })
                             } else {
@@ -575,7 +616,7 @@ function payed(req, res) {
                             "cocktails": tempArray,
                             "date": now.toJSON
                         };
-                        Payed.updateOne({ username: username }, { $push: { payed: newData } }, function (err, data) {
+                        Payed.updateOne({ username: username }, { $push: { payed: newData } }, function(err, data) {
                             if (err) {
                                 res.json({ message: err });
                             } else {
@@ -613,7 +654,7 @@ function payed(req, res) {
 
 function getClient(req, res) {
     var username = req.user.username;
-    Bills.findOne({ username: username }, function (err, data) {
+    Bills.findOne({ username: username }, function(err, data) {
         if (err) {
             res.json({ message: err });
         } else {
@@ -623,7 +664,7 @@ function getClient(req, res) {
 }
 
 function getClients(req, res) {
-    Bills.find(function (err, data) {
+    Bills.find(function(err, data) {
         if (err) {
             res.json({ message: err })
         } else {
@@ -636,7 +677,7 @@ function getClients(req, res) {
 function addDay(req, res) {
     var data = req.body;
     var newTijdslot = new Tijdsloten(data);
-    newTijdslot.save(function (err, saved) {
+    newTijdslot.save(function(err, saved) {
         if (err) {
             res.json({ message: err })
         } else {
@@ -650,7 +691,7 @@ function removeDay(req, res) {
     var day = data.day;
     var month = data.month;
 
-    Tijdsloten.remove({ day: day, month: month }, function (err, data) {
+    Tijdsloten.remove({ day: day, month: month }, function(err, data) {
         if (err) {
             res.json({ message: err })
         } else {
@@ -680,7 +721,7 @@ function registerDay(req, res) {
         //     }
         // });
 
-        Tijdsloten.find(function (err, data) {
+        Tijdsloten.find(function(err, data) {
             if (err) {
                 res.json({ message: err })
             } else {
@@ -690,7 +731,7 @@ function registerDay(req, res) {
                             corona = true;
                             res.send("corona")
                         } else {
-                            Tijdsloten.updateOne({ _id: tijdslot._id }, { $push: { registered: name } }, function (err, data) {
+                            Tijdsloten.updateOne({ _id: tijdslot._id }, { $push: { registered: name } }, function(err, data) {
                                 if (err) {
                                     res.json({ message: err });
                                 } else {
@@ -731,7 +772,7 @@ function getTimeslots(req, res) {
         //     sendingData.push(sendingSlot);
         // });
         // res.send(JSON.stringify(sendingData));
-        Tijdsloten.find(function (err, data) {
+        Tijdsloten.find(function(err, data) {
             if (err) {
                 res.json({ message: err })
             } else {
@@ -749,7 +790,7 @@ function getTimeslots(req, res) {
             }
         })
     } else {
-        Tijdsloten.find(function (err, data) {
+        Tijdsloten.find(function(err, data) {
             if (err) {
                 res.json({ message: err })
             } else {
@@ -780,7 +821,7 @@ function unregisterDay(req, res) {
     // function finished() {
     //     response.send(parsingData);
     // }
-    Tijdsloten.updateOne({ day: day, month: month }, { $pull: { registered: name } }, function (err, data) {
+    Tijdsloten.updateOne({ day: day, month: month }, { $pull: { registered: name } }, function(err, data) {
         if (err) {
             res.json({ message: err })
         } else {
