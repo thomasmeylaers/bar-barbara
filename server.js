@@ -343,9 +343,9 @@ function orderDrink(req, res) {
         var newOrder = new Order(sendingData);
         newOrder.save(function(err, saved) {
             if (err) {
-                console.log('err');
+                res.send('err');
             } else {
-                console.log('saved');
+                res.send('saved');
             }
         })
 
