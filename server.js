@@ -106,7 +106,7 @@ app.post('/sendnotification', (req, res) => {
                 const payload = JSON.stringify({ title: 'Bar Barbara' });
                 webPush.sendNotification(subscription, payload).catch(err => console.error(err));
             });
-            res.json({ message: 'succcess' })
+            res.send('hey?')
         }
     })
 });
