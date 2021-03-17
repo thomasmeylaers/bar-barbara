@@ -56,13 +56,16 @@ $(function() {
                     console.log("IMG HERE");
                     $.ajax(window.location.origin + "/sendnotification", {
                         method: "POST",
-                        contentType: "application/json"
+                        contentType: "application/json",
+                        success: () => {
+                            location.reload();
+                        }
                     });
                 }
             }
         });
 
         $(this).css('background-color', 'green');
-        location.reload();
+
     });
 });
