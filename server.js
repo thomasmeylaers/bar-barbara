@@ -157,6 +157,7 @@ app.get('/clients/remove/:name', deleteClient);
 app.post('/order', orderDrink);
 app.get('/finishorder/:id', finishOrder);
 app.get('/deleteorder/:id', deleteOrder);
+app.get('/deleteall', deleteAll);
 app.get('/orders', getOrders);
 app.get('/payed/:id', payed);
 app.get('/payedbills', getPayed);
@@ -395,6 +396,24 @@ function orderDrink(req, res) {
     } else {
         res.send("unauthorized");
     }
+}
+
+function deleteAll(req, res) {
+    Order.find((err, data) => {
+        if (err) {
+            res.json({ error: err })
+        } else {
+            var deleted = []
+            data.forEach(order => {
+                if (!order.finished) {
+                    Order.remove({ _id: order._id }, (err, data) => {
+                        deleted.push(data)
+                    })
+                }
+            });
+            res.send(deleted);
+        }
+    })
 }
 
 function finishOrder(req, res) {

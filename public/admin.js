@@ -1,6 +1,7 @@
-$(function () {
+$(function() {
     const publicVapidKey = "BAQY-g0nd6wwa3NRSq5Q0DcKReOW28LYZcchoql79C2pu-u9uP8fQr6eGir3BNlmHYbdHFXbcv3prbwy08qYvgA"
     var $test = $('#test');
+    var $deleteAll = $('#deleteAll')
     var $register = $('#register')
     var $day = $('#day');
     var $month = $('#month');
@@ -30,33 +31,33 @@ $(function () {
 
     // check for service worker
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('cunt.js').then(function (reg) {
-            console.log('Service Worker Registered!', reg);
+        navigator.serviceWorker.register('cunt.js').then(function(reg) {
+                console.log('Service Worker Registered!', reg);
 
-            reg.pushManager.getSubscription().then(function (sub) {
-                if (sub === null) {
-                    // Update UI to ask user to register for Push
-                    console.log('Not subscribed to push service!');
-                } else {
-                    // We have a subscription, update the database
-                    console.log('Subscription object: ', sub);
-                }
-            });
-        })
-            .catch(function (err) {
+                reg.pushManager.getSubscription().then(function(sub) {
+                    if (sub === null) {
+                        // Update UI to ask user to register for Push
+                        console.log('Not subscribed to push service!');
+                    } else {
+                        // We have a subscription, update the database
+                        console.log('Subscription object: ', sub);
+                    }
+                });
+            })
+            .catch(function(err) {
                 console.log('Service Worker registration failed: ', err);
             });
     }
 
     function subscribeUser() {
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.ready.then(function (reg) {
+            navigator.serviceWorker.ready.then(function(reg) {
 
                 reg.pushManager.subscribe({
                     userVisibleOnly: true,
                     applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
-                    
-                }).then(function (sub) {
+
+                }).then(function(sub) {
                     console.log('Endpoint URL: ', sub.endpoint);
                     fetch("/subscribepush", {
                         method: "POST",
@@ -65,7 +66,7 @@ $(function () {
                             "content-type": "application/json"
                         }
                     });
-                }).catch(function (e) {
+                }).catch(function(e) {
                     if (Notification.permission === 'denied') {
                         console.warn('Permission for notifications was denied');
                     } else {
@@ -78,7 +79,7 @@ $(function () {
 
     function displayNotification() {
         if (Notification.permission == 'granted') {
-            navigator.serviceWorker.getRegistration().then(function (reg) {
+            navigator.serviceWorker.getRegistration().then(function(reg) {
                 reg.showNotification('Hello world!');
             });
         }
@@ -132,7 +133,7 @@ $(function () {
         });
         console.log("Push Sent...");
     }
-    $test.on('click', async () => {
+    $test.on('click', async() => {
         await fetch("/sendnotification", {
             method: "POST",
             headers: {
@@ -140,7 +141,7 @@ $(function () {
             }
         });
     })
-    $register.on('click', async () => {
+    $register.on('click', async() => {
         subscribeUser();
     })
 
@@ -208,7 +209,7 @@ $(function () {
         }
     });
 
-    $tbody.on("click", ".betalen", function (event) {
+    $tbody.on("click", ".betalen", function(event) {
         var id = $(this).attr('client-id');
         $.ajax({
             type: 'GET',
@@ -220,7 +221,18 @@ $(function () {
         });
     });
 
-    $ordersList.on("click", ".finish-order", function (event) {
+    $deleteAll.on('click', (e) => {
+        $.ajax({
+            type: 'GET',
+            url: window.location.origin + '/deleteall',
+            success: (data) => {
+                console.log(data);
+                location.reload();
+            }
+        })
+    })
+
+    $ordersList.on("click", ".finish-order", function(event) {
         var id = $(this).attr('order-id');
         $.ajax({
             type: 'GET',
@@ -231,7 +243,7 @@ $(function () {
         })
     });
 
-    $ordersList.on("click", ".delete-order", function (event) {
+    $ordersList.on("click", ".delete-order", function(event) {
         var id = $(this).attr('order-id');
         $.ajax({
             type: 'GET',
@@ -243,7 +255,7 @@ $(function () {
     });
 
 
-    $addDay.on("click", function () {
+    $addDay.on("click", function() {
         var day = $day.val();
         var month = $month.val();
         var sendData = {
@@ -262,7 +274,7 @@ $(function () {
         });
     });
 
-    $removeDate.on("click", function () {
+    $removeDate.on("click", function() {
         var day = $removeDay.val();
         var month = $removeMonth.val();
         $.ajax(window.location.origin + "/removeday/" + day + "/" + month, {
@@ -274,7 +286,7 @@ $(function () {
         });
     });
 
-    $addIngredient.on("click", function () {
+    $addIngredient.on("click", function() {
         var sendData = {
             name: $nameIngredient.val(),
             price: $priceIngredient.val() / $amountIngredient.val()
@@ -289,7 +301,7 @@ $(function () {
         });
     });
 
-    $removeIngredient.on("click", function () {
+    $removeIngredient.on("click", function() {
         $.ajax(window.location.origin + "/ingredients/remove/" + $removeName.val(), {
             method: "GET",
             success: (response) => {
@@ -298,7 +310,7 @@ $(function () {
         });
     });
 
-    $saveIngredient.on("click", function () {
+    $saveIngredient.on("click", function() {
         var name = $ingredientRecipe.val();
         var amount = $amountOption.val();
         var times = $timesAmount.val();
@@ -315,7 +327,7 @@ $(function () {
         $timesAmount.val('');
     });
 
-    $doneRecipe.on("click", function () {
+    $doneRecipe.on("click", function() {
         var recipeName = $nameRecipe.val().toLowerCase();
         var sendingData = {
             name: recipeName,
@@ -333,7 +345,7 @@ $(function () {
         });
     });
 
-    $removeRecipe.on("click", function () {
+    $removeRecipe.on("click", function() {
         var name = $nameRemoveRecipe.val();
         $.ajax(window.location.origin + "/recipes/remove/" + name, {
             method: "GET",
