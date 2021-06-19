@@ -747,7 +747,7 @@ function registerDay(req, res) {
             } else {
                 data.forEach(tijdslot => {
                     if (givenDay == tijdslot.day && givenMonth == tijdslot.month) {
-                        if (tijdslot.registered.length >= 3) {
+                        if (tijdslot.registered.length >= 3000000) {
                             corona = true;
                             res.send("corona")
                         } else {
@@ -869,5 +869,5 @@ function checkNotAuthenticated(request, response, next) {
 }
 
 app.listen(port, () => {
-    console.log("OY CUNT");
+    console.log(`Listening on port ${port}`);
 });
