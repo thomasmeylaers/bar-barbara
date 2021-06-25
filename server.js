@@ -290,8 +290,10 @@ function addRecipe(req, res) {
                         });
                     });
                     postData.price = Math.ceil(price);
+                    postData.available = true;
                     console.log(postData);
                     var sendData = new Recipe(postData);
+
                     sendData.save(function(err, saved) {
                         if (err) {
                             res.json({ message: err });

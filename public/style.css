@@ -1,13 +1,14 @@
-html, body {
+html,
+body {
     height: 100%;
     width: 100%;
     font-family: sans-serif;
     color: white;
-    background: rgb(2,0,36);
-    background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(0,0,0,1) 19%, rgba(8,122,145,1) 100%);
+    background: rgb(2, 0, 36);
+    background: linear-gradient(90deg, rgba(2, 0, 36, 1) 0%, rgba(0, 0, 0, 1) 19%, rgba(8, 122, 145, 1) 100%);
 }
 
-html{
+html {
     scroll-behavior: smooth;
 }
 
@@ -20,13 +21,13 @@ header {
     background-size: cover;
 }
 
-.intro-body{
+.intro-body {
     display: table-cell;
     vertical-align: middle;
     text-align: center;
 }
 
-.uitschrijven-datum{
+.uitschrijven-datum {
     background-color: red;
 }
 
@@ -42,4 +43,12 @@ header {
 
 img {
     max-width: 100%;
+}
+
+.miensen {
+    margin-top: 2em;
+}
+
+.miensen img {
+    width: 50%;
 }

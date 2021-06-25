@@ -6,7 +6,8 @@ const RecipeSchema = mongoose.Schema({
         type: Array,
         "default":[]
     },
-    price: Number
+    price: Number,
+    available: Boolean
 })
 
 module.exports = mongoose.model('Recipe', RecipeSchema);
