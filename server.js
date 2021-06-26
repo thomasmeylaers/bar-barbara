@@ -102,8 +102,9 @@ app.post('/sendnotification', (req, res) => {
             res.json({ message: err })
         } else {
             let subscriptions = data;
+            let sendString =req.body.cocktail +": "+  req.user.username;
             subscriptions.forEach(subscription => {
-                const payload = JSON.stringify({ title: 'Bar Barbara' });
+                const payload = JSON.stringify({ title: sendString });
                 webPush.sendNotification(subscription, payload).catch(err => console.error(err));
             });
             res.send('hey?')

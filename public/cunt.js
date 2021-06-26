@@ -1,10 +1,9 @@
-console.log("HEY");
-
 self.addEventListener("push", e => {
   const data = e.data.json();
   console.log("Push Recieved...");
+  const WouteriseenHoer = "wouteriseenhoer";
   self.registration.showNotification(data.title, {
-    body: "NIEUWE BESTELLING",
+    body: "PLS HELP MIJ AUB",
     icon: "barbara.jpg"
   });
 });
@@ -17,7 +16,7 @@ self.addEventListener('notificationclick', function(e) {
     if (action === 'close') {
       notification.close();
     } else {
-      clients.openWindow('https://bar-barbara.herokuapp.com/admin');
+      clients.openWindow('https://www.bar-barbara.com/admin');
 
       notification.close();
     }
