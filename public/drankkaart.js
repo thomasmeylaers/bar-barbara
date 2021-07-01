@@ -12,6 +12,8 @@ $(function() {
         }
     });
 
+    
+
     $.ajax({
         type: 'GET',
         url: window.location.origin + '/recipes',
@@ -25,15 +27,6 @@ $(function() {
                     $.each(recipe.ingredients, function(i, ingredient) {
                         ingredientsString = ingredientsString.concat(ingredient.ingredient);
                         ingredientsString = ingredientsString.concat(', ');
-                        // $.each(ingredientsArray, function(i, ingredientData){
-                        //     if(ingredient.ingredient == ingredientData.name){
-                        //         // ZONDER WINST
-                        //         price += Number(ingredientData.price)*Number(ingredient.amount[0])*Number(ingredient.amount[1]);
-    
-                        //         // MET WINST
-    
-                        //     }
-                        // });
                     });
     
                     $tbody.append('<tr><td>' + recipe.name + '</td><td>' + ingredientsString + '</td><td>' + price + '</td><td><button class="bestellen-button" name="' + recipe.name + '">Bestellen</button></td></tr>');

@@ -28,6 +28,7 @@ $(function() {
     var availableIngredients = [];
     var pendingOrders = [];
     var savedIngredients = [];
+    var recipePrices = {};
 
     // check for service worker
     if ('serviceWorker' in navigator) {
@@ -149,21 +150,6 @@ $(function() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     $.ajax({
         type: 'GET',
         url: window.location.origin + '/ingredients',
@@ -193,21 +179,40 @@ $(function() {
         }
     });
 
+    // Get all the prices of every recipe in an object
+    $.ajax({
+        type: 'GET',
+        url: window.location.origin + '/recipes',
+        success: (data) => {
+            $.each(data, function(i, recipe) {
+                var name = recipe.name;
+                var price =  recipe.price + (Math.random() * (0.7 - 0.3) + 0.3);
+                recipePrices[name] = price;
+            });
+        }
+    })
+
     $.ajax({
         type: 'GET',
         url: window.location.origin + '/clients',
         success: (data) => {
+            console.log(recipePrices)
             var bills = data;
             bills.forEach(client => {
                 var ordersString = "";
+                let price =  0;
                 client.bill.forEach(drink => {
                     ordersString = ordersString.concat(drink);
                     ordersString = ordersString.concat(", ");
+                    
+                    price += recipePrices[drink];
                 });
-                $tbody.append('<tr><td>' + client.username + '</td><td>' + ordersString + '</td><td><button class="betalen" client-id="' + client.id + '">BETALEN</button></td></tr>')
+                price = Math.round(price*100)/100
+                $tbody.append('<tr><td>' + client.username + '</td><td>' + ordersString + '</td><td>'+price+'</td><td><button class="betalen" client-id="' + client.id + '">BETALEN</button></td></tr>')
             });
         }
     });
+
 
     $tbody.on("click", ".betalen", function(event) {
         var id = $(this).attr('client-id');
